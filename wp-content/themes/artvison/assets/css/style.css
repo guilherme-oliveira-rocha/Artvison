@@ -1,0 +1,390 @@
+.my-nav {
+    position: absolute !important;
+    width: 100%;
+    z-index: 999 !important;
+    background: none !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    margin-top: 50px !important;
+}
+
+#hide-menu {
+    background-color: #3C3C3E !important;
+}
+
+#hide-menu .navbar-nav a, #hide-menu .navbar-brand {
+    color: white !important;
+    font-size: 25px;
+    font-family: 'Bebas Neue', cursive;
+}
+
+#hide-menu .collapse {
+    text-align: right;
+    align-items: end;
+}
+
+.my-nav .navbar-nav a {
+    color: #3C3C3E !important;
+    font-size: 25px;
+    font-family: 'Bebas Neue', cursive;
+}
+
+.my-nav .navbar-nav a :hover {
+    color: black !important;
+}
+
+
+.carousel .carousel-item {
+    height: 100vh;
+}
+
+#contact a {
+    color: #3C3C3E !important;
+    font-size: 30px;
+    font-family: 'Bebas Neue', cursive;
+}
+
+#contact a:hover {
+    color: #fff !important;
+}
+
+.carousel-caption {
+    height: 50vh !important;
+}
+
+.title-images {
+    color: #3C3C3E;
+    font-family: 'Bebas Neue', cursive;
+}
+
+.image-button {
+    width: 125px;
+    opacity: 0.5;
+    font-size: 25px !important;
+}
+
+.title {
+    font-family: 'Bebas Neue', cursive;
+}
+
+.row {
+    margin: 0 !important;
+}
+
+.container-fluid {
+    padding-right: 0px !important;
+    padding-left: 0px !important;
+}
+
+#about {
+    text-align: left;
+    padding: 0px 100px 0px;
+}
+
+#about span h2 {
+    font-size: 50px;
+}
+
+#products {
+    margin-top: 150px !important;
+    background-image: linear-gradient(1turn, rgba(221, 221, 221, 0.05), rgba(60, 60, 62, 0.5) 30%, rgba(221, 221, 221, 0.05) 80%);
+}
+
+.container-image {
+    position: relative;
+    font-family: Arial;
+    padding: 10px 10px 10px;
+}
+
+.text-block {
+    position: absolute;
+    bottom: 10px;
+    margin-left: auto;
+    margin-right: auto;
+    left: 0;
+    right: 0;
+    background-color: rgba(0, 0, 0, .5);
+    color: white;
+    height: 35vh !important;
+    width: 35vh !important;
+    text-align: center;
+    border-radius: 50%;
+    transition: .3s;
+}
+
+.text-block h5, .text-block-right-top h5, .text-block-left-top h5, .text-block-right-bottom h5, .text-block-left-bottom h5 {
+    font-family: 'Bebas Neue', cursive;
+    font-size: 25px;
+    margin-top: 120px !important;
+}
+
+.image-work {
+    transition: .3s;
+    height: 35vh !important;
+    width: 35vh !important;
+}
+
+.text-block:hover+img, .text-block:hover {
+    transform: scale(1.3) !important;
+    z-index: 1 !important;
+}
+
+.text-block .text-hover ul {
+    list-style-type: disc;
+    margin-left: 30px;
+    text-align: left;
+}
+
+.text-block .text-hover {
+    display: none;
+    margin-top: 110px !important;
+}
+
+.link-image-work {
+    text-decoration: none;
+    font-family: 'Bebas Neue', cursive;
+    font-size: 25px;
+    margin-top: 120px !important;
+    color: #fff;
+}
+
+.link-image-work:hover {
+    color: #3C3C3E;
+    -webkit-text-stroke-width: 1px;
+    -webkit-text-stroke-color: #FFF;
+}
+
+#work-area {
+    padding: 20px 0 20px;
+    align-items: center;
+    text-align: center;
+    align-content: center;
+    align-self: center;
+}
+
+.align-icon {
+    color: #3C3C3E;
+    background: #ffffff;
+    border-style: solid;
+    border-color: #e4e5e6;
+    border-width: 2px;
+    width: 90px;
+    height: 90px;
+    line-height: 90px;
+    border-radius: 500px;
+    font-size: 32px;
+    display: inline-block;
+    transition: transform .5s;
+    /* Animation */
+    margin-bottom: 30px;
+}
+
+.box-icon {
+    padding: 0 70px 0;
+}
+
+.align-icon:hover {
+    transform: scale(1.5);
+}
+
+.parallax {
+    /* The image used */
+    background-image: url('../images/Foto_Obras/Forros/modular/Fibra_mineral/IMG_7726_auto_x2_colored_toned_light_ai.png') !important;
+    /* Full height */
+    height: 100%;
+    /* Create the parallax scrolling effect */
+    background-attachment: fixed;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: cover;
+}
+
+.icon-title {
+    margin-right: 20px;
+}
+
+.parallax {
+    display: block;
+    border-top-left-radius: 20px;
+    border-top-right-radius: 20px;
+    border-bottom-left-radius: 20px;
+    border-bottom-right-radius: 20px;
+    background-color: #fff;
+}
+
+.title-about {
+    font-family: 'Bebas Neue', cursive;
+    font-size: 25px;
+    margin-top: 0 !important;
+}
+
+.mt-6 {
+    margin-top: 3.5rem!important;
+}
+
+.mt-7 {
+    margin-top: 10rem!important;
+}
+
+
+#our_services_title h2 {
+    font-size: 100px !important;
+    font-family: 'Bebas Neue', cursive;
+    line-height: 0.8em;
+}
+
+#contact-us {
+    margin-top: 150px;
+    padding-top: 25px;
+}
+
+
+#contact-us-tile h2 {
+    font-family: 'Bebas Neue', cursive;
+    line-height: 0.8em;
+    margin-top: 30%;
+}
+
+#our-products h2 {
+    font-family: 'Bebas Neue', cursive;
+    line-height: 0.8em;
+}
+
+#loader {
+    padding-top: 40.5%;
+}
+
+#closeButton {
+    bottom: 20px;
+    right: 30px;
+    z-index: 9999;
+    background-color: #3C3C3E;
+    color: white;
+    cursor: pointer;
+    padding: 15px;
+    border-radius: 10px;
+}
+
+.responsive-iframe {
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+    width: 100%;
+    height: 100%;
+    border: none;
+}
+
+.input-group-text {
+    color: white;
+    background-color: black !important;
+    border-radius: 25px;
+}
+
+.inputContactUs {
+    border-radius: 0 25px 25px 0;
+}
+
+.radio-start {
+    border-radius: 25px 0 0 25px!important;
+}
+
+.radio-start-vertical {
+    border-radius: 25px 25px 0 0!important;
+}
+
+.radio-end-vertical {
+    border-radius: 0 0 25px 25px!important;
+}
+
+.radio-end {
+    border-radius: 0 25px 25px 0!important;
+}
+
+.radio-single {
+    border-radius: 25px 25px 25px 25px!important;
+}
+
+.btn-group-vertical {
+    width: 100%;
+}
+
+@media only screen and (max-width: 1150px) {
+    #our-services {
+        margin-top: 100 !important;
+    }
+
+    .container-image, .container-image-right-top, .container-image-right-bottom, .container-image-left-top, .container-image-left-bottom {
+        position: relative;
+        font-family: Arial;
+        padding: 10px 10px 10px;
+        text-align: center;
+        margin-left: 0;
+        margin-top: 0;
+        margin-right: 0;
+    }
+
+    .text-block, .text-block-left-bottom, .text-block-left-top, .text-block-right-bottom, .text-block-right-top {
+        position: absolute;
+        bottom: 10px;
+        margin-left: auto;
+        margin-right: auto;
+        left: 0;
+        right: 0;
+        background-color: rgba(0, 0, 0, .5);
+        color: white;
+        height: 35vh !important;
+        width: 35vh !important;
+        text-align: center;
+        border-radius: 50%;
+    }
+
+    .text-block h5, .text-block-right-top h5, .text-block-left-top h5, .text-block-right-bottom h5, .text-block-left-bottom h5 {
+        margin-top: 40%;
+        font-family: 'Bebas Neue', cursive;
+        font-size: 30px;
+        margin-top: 100px !important;
+    }
+}
+
+@media only screen and (max-width: 600px) {
+    .carousel .carousel-item {
+        height: 50vh;
+    }
+
+    .carousel-item img {
+        position: absolute;
+        top: 0;
+        left: 0;
+        min-height: 50vh;
+    }
+
+    #about {
+        text-align: left;
+        padding: 0px 15px 0px;
+    }
+
+    #OurServices {
+        margin-top: 0px !important;
+    }
+
+    #OurServices_tile {
+        padding-left: 20px !important;
+    }
+
+    #OurServices_tile h2 {
+        font-size: 100px !important;
+        font-family: 'Bebas Neue', cursive;
+        line-height: 0.8em;
+        margin-top: 10%;
+    }
+
+    #OurServices_body {
+        padding-left: 10px !important;
+    }
+
+    .box-services-sm {
+        margin-top: 50px;
+    }
+}
