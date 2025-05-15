@@ -39,7 +39,6 @@ class AJAX {
 
 		// React. Hide tutorials.
 		add_action( 'wp_ajax_wphb_react_hide_tutorials', array( $this, 'hide_tutorials' ) );
-		add_action( 'wp_ajax_wphb_hide_black_friday', array( $this, 'hide_black_friday' ) );
 
 		// Parse clear cache click from frontend admin bar.
 		add_action( 'wp_ajax_wphb_front_clear_cache', array( $this, 'clear_frontend_cache' ) );
@@ -66,8 +65,6 @@ class AJAX {
 		 * DASHBOARD AJAX ACTIONS
 		 */
 
-		// Skip quick setup.
-		add_action( 'wp_ajax_wphb_dash_skip_setup', array( $this, 'dashboard_skip_setup' ) );
 		// Dismiss notice.
 		add_action( 'wp_ajax_wphb_notice_dismiss', array( $this, 'notice_dismiss' ) );
 		// Dismiss notice.
@@ -101,6 +98,8 @@ class AJAX {
 		add_action( 'wp_ajax_wphb_preload_cancel', array( $this, 'cancel_cache_preload' ) );
 		// Remove advanced-cache.php file.
 		add_action( 'wp_ajax_wphb_remove_advanced_cache', array( $this, 'remove_advanced_cache' ) );
+		// Disable FastCGI cache.
+		add_action( 'wp_ajax_wphb_disable_fast_cgi', array( $this, 'disable_fast_cgi' ) );
 
 		/* RSS CACHING */
 
@@ -147,15 +146,15 @@ class AJAX {
 		// Delete scan.
 		add_action( 'wp_ajax_wphb_minification_finish_scan', array( $this, 'minification_finish_scan' ) );
 		// Save critical css file.
-		add_action( 'wp_ajax_wphb_minification_save_critical_css', array( $this, 'minification_save_critical_css' ) );
+		add_action( 'wp_ajax_wphb_minification_save_extra_optimization_data', array( $this, 'minification_save_extra_optimization_data' ) );
 		// Update custom asset path.
 		add_action( 'wp_ajax_wphb_minification_update_asset_path', array( $this, 'minification_update_asset_path' ) );
-		// Reset individual file.
-		add_action( 'wp_ajax_wphb_minification_reset_asset', array( $this, 'minification_reset_asset' ) );
 		// Update settings in network admin.
 		add_action( 'wp_ajax_wphb_minification_update_network_settings', array( $this, 'minification_update_network_settings' ) );
 		// Save settings.
 		add_action( 'wp_ajax_wphb_minification_save_exclude_list', array( $this, 'minification_save_exclude_list' ) );
+		// Toggle safe mode.
+		add_action( 'wp_ajax_wphb_minification_toggle_safe_mode', array( $this, 'minification_toggle_safe_mode' ) );
 
 		// Skip AO upgrade.
 		add_action( 'wp_ajax_wphb_ao_skip_upgrade', array( $this, 'minification_skip_upgrade' ) );
@@ -190,8 +189,6 @@ class AJAX {
 		add_action( 'wp_ajax_wphb_admin_settings_save_settings', array( $this, 'admin_settings_save_settings' ) );
 		// Reset settings.
 		add_action( 'wp_ajax_wphb_reset_settings', array( $this, 'reset_settings' ) );
-		// Toggle tracking.
-		add_action( 'wp_ajax_wphb_toggle_tracking', array( $this, 'toggle_tracking' ) );
 		// Export settings.
 		add_action( 'wp_ajax_wphb_admin_settings_export_settings', array( $this, 'admin_settings_export_settings' ) );
 		// Import settings.
@@ -201,6 +198,26 @@ class AJAX {
 		add_action( 'wp_ajax_wphb_create_config', array( $this, 'save_config' ) );
 		add_action( 'wp_ajax_wphb_upload_config', array( $this, 'upload_config' ) );
 		add_action( 'wp_ajax_wphb_apply_config', array( $this, 'apply_config' ) );
+
+		// Clear Critical Css.
+		add_action( 'wp_ajax_wphb_clear_critical_css_files', array( $this, 'clear_critical_css_files_and_regenerate' ) );
+
+		// Create Critical Css.
+		add_action( 'wp_ajax_wphb_gutenberg_create_css_file', array( $this, 'gutenberg_create_css_file' ) );
+		// Re-Create Critical Css.
+		add_action( 'wp_ajax_wphb_gutenberg_recreate_css_file', array( $this, 'gutenberg_recreate_css_file' ) );
+		// Revert Critical Css.
+		add_action( 'wp_ajax_wphb_gutenberg_revert_css_file', array( $this, 'gutenberg_revert_css_file' ) );
+		// Get Critical Css status for single post.
+		add_action( 'wp_ajax_wphb_gutenberg_get_critical_status_for_single_post', array( $this, 'gutenberg_get_critical_status_for_single_post' ) );
+
+		// Get Critical Css status for single post.
+		add_action( 'wp_ajax_wphb_get_critical_status_for_queue', array( $this, 'get_critical_status_for_queue' ) );
+
+		// Toggle Delay Js.
+		add_action( 'wp_ajax_wphb_react_minify_toggle_delay_js', array( $this, 'minification_toggle_delay' ) );
+		// Toggle Critical CSS.
+		add_action( 'wp_ajax_wphb_react_minify_toggle_critical_css', array( $this, 'minify_toggle_critical_css' ) );
 	}
 
 	/**
@@ -209,6 +226,13 @@ class AJAX {
 	 * @since 1.9.3
 	 */
 	public function clear_frontend_cache() {
+		check_ajax_referer( 'wphb-fetch', 'nonce' );
+
+		// Check permission.
+		if ( ! current_user_can( Utils::get_admin_capability() ) ) {
+			die();
+		}
+
 		$pc_module = Utils::get_module( 'page_cache' );
 		$status    = $pc_module->clear_cache();
 
@@ -225,6 +249,13 @@ class AJAX {
 	 * @since 1.9.3
 	 */
 	public function clear_global_cache() {
+		check_ajax_referer( 'wphb-fetch', 'nonce' );
+
+		// Check permission.
+		if ( ! current_user_can( Utils::get_admin_capability() ) ) {
+			die();
+		}
+
 		$modules = Utils::get_active_cache_modules();
 
 		foreach ( $modules as $module => $name ) {
@@ -255,6 +286,11 @@ class AJAX {
 	public function clear_modules_cache() {
 		check_ajax_referer( 'wphb-fetch', 'nonce' );
 
+		// Check permission.
+		if ( ! current_user_can( Utils::get_admin_capability() ) ) {
+			die();
+		}
+
 		$modules = filter_input( INPUT_POST, 'modules', FILTER_DEFAULT, FILTER_REQUIRE_ARRAY );
 
 		if ( ! $modules ) {
@@ -276,7 +312,7 @@ class AJAX {
 
 		// Do not clear Opcache.
 		if ( ! in_array( 'opcache', $modules, true ) ) {
-			remove_action( 'wphb_clear_cache_url', array( \Hummingbird\Core\Integration\Opcache::get_instance(), 'purge_cache' ) );
+			remove_action( 'wphb_clear_cache_url', array( Opcache::get_instance(), 'purge_cache' ) );
 		} else {
 			$key = array_search( 'opcache', $modules, true );
 			unset( $modules[ $key ] );
@@ -290,11 +326,7 @@ class AJAX {
 		foreach ( $modules as $module ) {
 			$mod = Utils::get_module( $module );
 
-			if ( false === $modules ) {
-				continue;
-			}
-
-			if ( ! $mod->is_active() ) {
+			if ( false === $mod || ! $mod->is_active() ) {
 				continue;
 			}
 
@@ -318,6 +350,13 @@ class AJAX {
 	 * @since 2.7.2
 	 */
 	public function clear_frontend_cloudflare() {
+		check_ajax_referer( 'wphb-fetch', 'nonce' );
+
+		// Check permission.
+		if ( ! current_user_can( Utils::get_admin_capability() ) ) {
+			die();
+		}
+
 		$status = Utils::get_module( 'cloudflare' )->clear_cache();
 
 		if ( ! $status ) {
@@ -335,20 +374,12 @@ class AJAX {
 	public function hide_tutorials() {
 		check_ajax_referer( 'wphb-fetch' );
 
+		// Check permission.
+		if ( ! current_user_can( Utils::get_admin_capability() ) ) {
+			die();
+		}
+
 		update_option( 'wphb-hide-tutorials', true, false );
-
-		wp_send_json_success();
-	}
-
-	/**
-	 * Hide Black Friday notice.
-	 *
-	 * @since 3.1.3
-	 */
-	public function hide_black_friday() {
-		check_ajax_referer( 'wphb-fetch', 'nonce' );
-
-		delete_site_option( 'wphb-show-black-friday' );
 
 		wp_send_json_success();
 	}
@@ -366,7 +397,7 @@ class AJAX {
 		$count = wp_cache_get( 'wphb_network_subsites' );
 
 		if ( false === $count ) {
-			$count = $wpdb->get_var( "SELECT COUNT( blog_id ) FROM {$wpdb->blogs}" ); // Db call ok.
+			$count = $wpdb->get_var( "SELECT COUNT( blog_id ) FROM $wpdb->blogs" ); // Db call ok.
 		}
 
 		wp_cache_set( 'wphb_network_subsites', $count );
@@ -406,7 +437,7 @@ class AJAX {
 
 		foreach ( $sites as $site ) {
 			switch_to_blog( $site->blog_id );
-			Utils::get_module( 'page_cache' )->clear_cache( $site->domain . $site->path );
+			Utils::get_module( 'page_cache' )->clear_cache( $site->domain . $site->path, false, false );
 		}
 
 		// Revert the HTTP_HOST value back.
@@ -425,23 +456,6 @@ class AJAX {
 	 * *************************
 	 * DASHBOARD AJAX ACTIONS
 	 ***************************/
-
-	/**
-	 * Skip quick setup and go straight to dashboard.
-	 *
-	 * @since 1.5.0
-	 */
-	public function dashboard_skip_setup() {
-		check_ajax_referer( 'wphb-fetch', 'nonce' );
-
-		if ( ! current_user_can( Utils::get_admin_capability() ) ) {
-			die();
-		}
-
-		delete_option( 'wphb_run_onboarding' );
-
-		wp_send_json_success();
-	}
 
 	/**
 	 * Dismiss notice.
@@ -507,7 +521,7 @@ class AJAX {
 			wp_send_json_success( array( 'finished' => false ) );
 		}
 
-		$now = current_time( 'timestamp' );
+		$now = time();
 		if ( $now >= ( $started_at + 15 ) ) {
 			$mobile  = '-';
 			$desktop = '-';
@@ -517,9 +531,12 @@ class AJAX {
 				Performance::set_doing_report( false );
 				wp_send_json_success(
 					array(
-						'finished'     => true,
-						'mobileScore'  => $mobile,
-						'desktopScore' => $desktop,
+						'finished'            => true,
+						'mobileScore'         => $mobile,
+						'desktopScore'        => $desktop,
+						'HBSmushFeatures'     => Utils::get_active_features(),
+						'hbPerformanceMetric' => Utils::get_performance_metric_for_mp(),
+						'aoStatus'            => Utils::is_ao_processing() ? 'incomplete' : 'complete',
 					)
 				);
 			}
@@ -527,6 +544,16 @@ class AJAX {
 			// The report should be finished by this time, let's get the results.
 			Performance::refresh_report();
 			$report = Performance::get_last_report();
+
+			// Do not cancel the scan if the report is not latest one.
+			$current_gmt_time = current_time( 'timestamp', true );
+			if ( $report && ! is_wp_error( $report ) ) {
+				$date_time = $report->data->time;
+				if ( ( $date_time + 120 ) < $current_gmt_time ) {
+					Settings::delete( 'wphb-stop-report' );
+					wp_send_json_success( array( 'finished' => false ) );
+				}
+			}
 
 			// Do not cancel the scan if the report is not ready. We might still have some time to wait.
 			if ( is_wp_error( $report ) ) {
@@ -538,6 +565,14 @@ class AJAX {
 				}
 			}
 
+			/**
+			 * On consecutive scans, sometimes a newer version of the report won't be available, and we will get the
+			 * old version. In that case - skip and continue on the scan.
+			 */
+			if ( isset( $report ) && isset( $report->data ) && isset( $report->data->time ) && ( $now - $report->data->time ) > 300 ) {
+				wp_send_json_success( array( 'finished' => false ) );
+			}
+
 			if ( isset( $report ) && isset( $report->data->mobile->score ) ) {
 				$mobile = $report->data->mobile->score;
 			}
@@ -547,9 +582,12 @@ class AJAX {
 
 			wp_send_json_success(
 				array(
-					'finished'     => true,
-					'mobileScore'  => $mobile,
-					'desktopScore' => $desktop,
+					'finished'            => true,
+					'mobileScore'         => $mobile,
+					'desktopScore'        => $desktop,
+					'HBSmushFeatures'     => Utils::get_active_features(),
+					'hbPerformanceMetric' => Utils::get_performance_metric_for_mp(),
+					'aoStatus'            => Utils::is_ao_processing() ? 'incomplete' : 'complete',
 				)
 			);
 		}
@@ -616,10 +654,20 @@ class AJAX {
 			);
 		}
 
-		$status = Utils::get_module( $module )->clear_cache();
+		$reload = false;
+
+		$current_fast_cgi = get_site_transient( 'wphb-fast-cgi-enabled' );
+		$status           = Utils::get_module( $module )->clear_cache();
+
+		// Make sure we reload the page if the FastCGI status has changed.
+		if ( 'page_cache' === $module ) {
+			$reload = Utils::get_api()->hosting->has_fast_cgi() !== $current_fast_cgi;
+		}
+
 		wp_send_json_success(
 			array(
 				'success' => $status,
+				'reload'  => $reload,
 			)
 		);
 	}
@@ -797,6 +845,27 @@ class AJAX {
 	}
 
 	/**
+	 * Disable FastCGI cache.
+	 *
+	 * This duplicates Admin\Ajax\disable_fast_cgi()
+	 *
+	 * @since 3.4.0
+	 *
+	 * @return void
+	 */
+	public function disable_fast_cgi() {
+		check_ajax_referer( 'wphb-fetch', 'nonce' );
+
+		if ( ! current_user_can( 'manage_options' ) ) {
+			die();
+		}
+
+		Utils::get_api()->hosting->disable_fast_cgi();
+
+		wp_send_json_success();
+	}
+
+	/**
 	 * Connect to Cloudflare.
 	 *
 	 * @since 3.0.0
@@ -809,9 +878,12 @@ class AJAX {
 		}
 
 		$email = filter_input( INPUT_POST, 'email', FILTER_SANITIZE_EMAIL );
-		$key   = filter_input( INPUT_POST, 'key', FILTER_SANITIZE_STRING );
-		$token = filter_input( INPUT_POST, 'token', FILTER_SANITIZE_STRING );
-		$zone  = filter_input( INPUT_POST, 'zone', FILTER_SANITIZE_STRING );
+		$key   = filter_input( INPUT_POST, 'key', FILTER_UNSAFE_RAW );
+		$key   = sanitize_text_field( $key );
+		$token = filter_input( INPUT_POST, 'token', FILTER_UNSAFE_RAW );
+		$token = sanitize_text_field( $token );
+		$zone  = filter_input( INPUT_POST, 'zone', FILTER_UNSAFE_RAW );
+		$zone  = sanitize_text_field( $zone );
 
 		if ( ! ( $email && $key ) && ! $token && ! $zone ) {
 			$message = esc_html__( 'Cannot process the form. Please define either the Email/API key or the API token.', 'wphb' );
@@ -976,9 +1048,9 @@ class AJAX {
 			die();
 		}
 
-		$host = filter_input( INPUT_POST, 'host', FILTER_SANITIZE_STRING );
+		$host = filter_input( INPUT_POST, 'host', FILTER_UNSAFE_RAW );
 		$port = filter_input( INPUT_POST, 'port', FILTER_VALIDATE_INT );
-		$pass = filter_input( INPUT_POST, 'password', FILTER_SANITIZE_STRING );
+		$pass = filter_input( INPUT_POST, 'password', FILTER_UNSAFE_RAW );
 		$db   = filter_input( INPUT_POST, 'db', FILTER_VALIDATE_INT );
 
 		$redis_mod = Utils::get_module( 'redis' );
@@ -1071,7 +1143,7 @@ class AJAX {
 			die();
 		}
 
-		$value = rest_sanitize_boolean( wp_unslash( $_POST['value'] ) ); // Input var okay.
+		$value = filter_input( INPUT_POST, 'value', FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE );
 
 		$minify_module = Utils::get_module( 'minify' );
 		$minify_module->toggle_cdn( $value );
@@ -1092,7 +1164,7 @@ class AJAX {
 			die();
 		}
 
-		$value = rest_sanitize_boolean( wp_unslash( $_POST['value'] ) ); // Input var okay.
+		$value = filter_input( INPUT_POST, 'value', FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE );
 
 		$minify         = Utils::get_module( 'minify' );
 		$options        = $minify->get_options();
@@ -1128,7 +1200,9 @@ class AJAX {
 		$hide = filter_input( INPUT_POST, 'hide', FILTER_VALIDATE_BOOLEAN );
 
 		if ( 'basic' === $type ) {
-			Utils::get_module( 'minify' )->clear_cache( true, false, true );
+			$minify = Utils::get_module( 'minify' );
+			$minify->set_safe_mode_status( false );
+			$minify->clear_cache( true, false, true );
 			if ( true === $hide ) {
 				delete_option( 'wphb-minification-show-config_modal' );
 			}
@@ -1145,6 +1219,13 @@ class AJAX {
 	 * Set a flag that marks the minification check files as started.
 	 */
 	public function minification_start_check() {
+		check_ajax_referer( 'wphb-fetch', 'nonce' );
+
+		// Check permission.
+		if ( ! current_user_can( Utils::get_admin_capability() ) ) {
+			die();
+		}
+
 		$minify_module = Utils::get_module( 'minify' );
 		$minify_module->init_scan();
 
@@ -1159,6 +1240,13 @@ class AJAX {
 	 * Process step during minification scan.
 	 */
 	public function minification_check_step() {
+		check_ajax_referer( 'wphb-fetch', 'nonce' );
+
+		// Check permission.
+		if ( ! current_user_can( Utils::get_admin_capability() ) ) {
+			die();
+		}
+
 		$minify_module = Utils::get_module( 'minify' );
 
 		$urls         = $minify_module->scanner->get_scan_urls();
@@ -1179,6 +1267,13 @@ class AJAX {
 	 * @since 1.4.5
 	 */
 	public function minification_cancel_scan() {
+		check_ajax_referer( 'wphb-fetch', 'nonce' );
+
+		// Check permission.
+		if ( ! current_user_can( Utils::get_admin_capability() ) ) {
+			die();
+		}
+
 		$minify_module = Utils::get_module( 'minify' );
 		$minify_module->toggle_service( false );
 		$minify_module->clear_cache();
@@ -1190,8 +1285,15 @@ class AJAX {
 	 * Finish minification scan.
 	 */
 	public function minification_finish_scan() {
-		delete_transient( 'wphb-minification-files-scanning' );
-		update_option( 'wphb-minification-files-scanned', true );
+		check_ajax_referer( 'wphb-fetch', 'nonce' );
+
+		// Check permission.
+		if ( ! current_user_can( Utils::get_admin_capability() ) ) {
+			die();
+		}
+
+		Utils::get_module( 'minify' )->scanner->finish_scan();
+
 		wp_send_json_success(
 			array(
 				'assets_msg' => sprintf(
@@ -1208,21 +1310,176 @@ class AJAX {
 	 *
 	 * @since 1.8
 	 */
-	public function minification_save_critical_css() {
+	public function minification_save_extra_optimization_data() {
 		check_ajax_referer( 'wphb-fetch', 'nonce' );
 
 		if ( ! current_user_can( Utils::get_admin_capability() ) || ! isset( $_POST['form'] ) ) { // Input var okay.
 			die();
 		}
 
+		$minify_options = Settings::get_settings( 'minify' );
+		$message        = __( 'Settings updated', 'wphb' );
+
 		parse_str( wp_unslash( $_POST['form'] ), $form ); // Input var ok.
+
+		$prev_delay_value         = Settings::get_setting( 'delay_js', 'minify' );
+		$prev_delay_js_exclusions = Settings::get_setting( 'delay_js_exclusions', 'minify' );
+		$prev_delay_js_timeout    = Settings::get_setting( 'delay_js_timeout', 'minify' );
+
+		$old_critical_css_option                = $minify_options['critical_css'];
+		$old_critical_css_mode                  = $minify_options['critical_css_mode'];
+		$old_critical_page_types                = $minify_options['critical_page_types'];
+		$old_critical_skipped_custom_post_types = $minify_options['critical_skipped_custom_post_types'];
+		$old_critical_css_type                  = $minify_options['critical_css_type'];
+		$old_critical_css_remove_type           = $minify_options['critical_css_remove_type'];
+		$old_critical_css_manual_include        = Minify::get_css( 'manual-critical' );
+
+		if ( ! empty( $form['critical_css_option'] ) ) {
+			Minify::save_css( $form['critical_css_advanced'], 'manual-critical' );
+		}
 
 		$status = Minify::save_css( $form['critical_css'] );
 
+		$delay_js         = ! empty( $form['delay_js'] );
+		$delay_js_exclude = $form['delay_js_exclude'];
+		$delay_js_exclude = html_entity_decode( $delay_js_exclude );
+		$delay_js_timeout = (int) $form['delay_js_timeout'];
+
+		Settings::update_setting( 'delay_js', $delay_js, 'minify' );
+		Settings::update_setting( 'delay_js_exclusions', $delay_js_exclude, 'minify' );
+		Settings::update_setting( 'delay_js_timeout', $delay_js_timeout, 'minify' );
+
+		// Preload fonts.
+		$prev_font_optimization = Settings::get_setting( 'font_optimization', 'minify' );
+		$prev_font_swap = Settings::get_setting( 'font_swap', 'minify' );
+		$font_optimization      = ! empty( $form['font_optimization'] );
+		$preload_fonts          = $form['preload_fonts'];
+		$preload_fonts          = html_entity_decode( $preload_fonts );
+		$font_swap              = ! empty( $form['font_swap'] );
+		Settings::update_setting( 'font_optimization', $font_optimization, 'minify' );
+		Settings::update_setting( 'preload_fonts', $preload_fonts, 'minify' );
+		Settings::update_setting( 'font_swap', $font_swap, 'minify' );
+
+		// Track font value to MP.
+		$font_optimization_update_type = $prev_font_optimization !== $font_optimization ? ( ! empty( $font_optimization ) ? 'activate' : 'deactivate' ) : '';
+		$font_swap_update_type         = $prev_font_swap !== $font_swap ? ( ! empty( $font_swap ) ? 'activate' : 'deactivate' ) : '';
+
+		// Update Critical CSS option.
+		$critical_css_mode          = $form['critical_css_mode'];
+		$critical_css_option        = ! empty( $form['critical_css_option'] ) && 'critical_css' === $critical_css_mode;
+		$critical_css_type          = $form['critical_css_type'];
+		$critical_css_remove_type   = ! empty( $form['critical_css_remove_type'] ) ? $form['critical_css_remove_type'] : '';
+		$is_status_tag_needs_update = false;
+
+		$critical_page_types                = array();
+		$critical_skipped_custom_post_types = array();
+
+		if ( isset( $form['critical_page_types'] ) && is_array( $form['critical_page_types'] ) ) { // Input var ok.
+			$critical_page_types = array_keys( wp_unslash( $form['critical_page_types'] ) ); // Input var ok.
+		}
+		if ( isset( $form['critical_skipped_custom_post_types'] ) && is_array( $form['critical_skipped_custom_post_types'] ) ) { // Input var ok.
+			$custom_post_types_data = wp_unslash( $form['critical_skipped_custom_post_types'] ); // Input var ok.
+			foreach ( $custom_post_types_data as $custom_post_type => $value ) {
+				if ( $value ) {
+					$critical_skipped_custom_post_types[] = $custom_post_type;
+				}
+			}
+		}
+
+		Settings::update_setting( 'critical_css', $critical_css_option, 'minify' );
+		Settings::update_setting( 'critical_css_type', $critical_css_type, 'minify' );
+		Settings::update_setting( 'critical_css_remove_type', $critical_css_remove_type, 'minify' );
+		Settings::update_setting( 'critical_page_types', $critical_page_types, 'minify' );
+		Settings::update_setting( 'critical_skipped_custom_post_types', $critical_skipped_custom_post_types, 'minify' );
+		Settings::update_setting( 'critical_css_mode', $critical_css_mode, 'minify' );
+
+		// In Case of toggle changes generate critical css enabled, clear the data otherwise.
+		if ( $old_critical_css_option !== $critical_css_option || $old_critical_css_type !== $critical_css_type ) {
+			if ( ! empty( $critical_css_option ) ) {
+				$is_status_tag_needs_update = true;
+				$critical_status            = Utils::get_module( 'critical_css' )->regenerate_critical_css();
+				$message                    = __( 'Settings updated. Generating Critical CSS, this could take about a minute.', 'wphb' );
+			}
+		}
+
+		// This will require a clear cache call.
+		Utils::get_module( 'page_cache' )->clear_cache();
+
+		// Track delay js modified values.
+		$is_delay_value_updated = $prev_delay_value !== $delay_js;
+		$delay_js_update_type   = ! empty( $delay_js ) ? 'activate' : 'deactivate';
+
+		if ( ! empty( $delay_js ) && $prev_delay_value === $delay_js ) {
+			if ( $prev_delay_js_exclusions !== $delay_js_exclude || $prev_delay_js_timeout !== $delay_js_timeout ) {
+				$delay_js_update_type   = 'modified';
+				$is_delay_value_updated = true;
+			}
+		}
+
+		// Track critical css modified values.
+		$settings_modified = array();
+		$settings_default  = array();
+
+		$is_critical_value_updated = $old_critical_css_option !== $critical_css_option;
+		$critical_css_update_type  = ! empty( $critical_css_option ) ? 'activate' : 'deactivate';
+
+		if ( ! empty( $critical_css_option ) && $old_critical_css_option === $critical_css_option ) {
+			if ( $old_critical_css_type !== $critical_css_type || $old_critical_css_remove_type !== $critical_css_remove_type ) {
+				$is_critical_value_updated = true;
+				$critical_css_update_type  = 'modified';
+			}
+
+			if ( $old_critical_page_types !== $critical_page_types || $old_critical_skipped_custom_post_types !== $critical_skipped_custom_post_types ) {
+				$settings_modified[] = 'post_type';
+			} else {
+				$settings_default[] = 'post_type';
+			}
+
+			if ( $old_critical_css_manual_include !== $form['critical_css_advanced'] ) {
+				$settings_modified[] = 'inclusions';
+			} else {
+				$settings_default[] = 'inclusions';
+			}
+		}
+
+		$critical_css_update_type  = ! empty( $settings_modified ) ? 'modified' : $critical_css_update_type;
+		$is_critical_value_updated = ! empty( $settings_modified ) ? true : $is_critical_value_updated;
+
+		// Track the mode for mixpanel.
+		if ( 'asynchronously' === $critical_css_type ) {
+			$critical_mode = 'abovefold_async';
+		} elseif ( 'remove_unused' === $critical_css_remove_type ) {
+			$critical_mode = 'fullpage_remove';
+		} else {
+			$critical_mode = 'fullpage_ui';
+		}
+
+		// Track the location for mixpanel.
+		$location = 'eo_settings';
+		if ( ! empty( $form['critical_css'] ) && ! empty( $critical_css_option ) && $old_critical_css_option !== $critical_css_option && $old_critical_css_mode !== $critical_css_mode ) {
+			$location = 'legacy';
+		}
+
 		wp_send_json_success(
 			array(
-				'success' => $status['success'],
-				'message' => $status['message'],
+				'delay_js'                   => $delay_js,
+				'delay_js_update_type'       => $delay_js_update_type,
+				'is_delay_value_updated'     => $is_delay_value_updated,
+				'delay_js_timeout'           => $delay_js_timeout,
+				'delay_js_exclude'           => $delay_js_exclude,
+				'updateType'                 => $critical_css_update_type,
+				'isCriticalValueUpdated'     => $is_critical_value_updated,
+				'critical_css'               => $critical_css_option,
+				'settingsModified'           => implode( ',', $settings_modified ),
+				'settingsDefault'            => implode( ',', $settings_default ),
+				'mode'                       => $critical_mode,
+				'location'                   => $location,
+				'success'                    => $status['success'],
+				'message'                    => $message,
+				'isStatusTagNeedsUpdate'     => $is_status_tag_needs_update,
+				'htmlForStatusTag'           => Utils::get_module( 'critical_css' )->get_html_for_status_tag(),
+				'fontOptimizationUpdateType' => $font_optimization_update_type,
+				'fontSwapUpdateType'         => $font_swap_update_type,
 			)
 		);
 	}
@@ -1243,11 +1500,7 @@ class AJAX {
 
 		Utils::get_module( 'minify' )->clear_cache( false );
 
-		$current_path = Filesystem::instance()->resolve_minify_asset_path();
-
-		if ( isset( $current_path ) && ! empty( $current_path ) ) {
-			Filesystem::instance()->purge( $current_path, true );
-		}
+		Filesystem::instance()->purge_ao_cache();
 
 		// Update to new setting value.
 		Settings::update_setting( 'file_path', $path, 'minify' );
@@ -1274,7 +1527,8 @@ class AJAX {
 
 		$files = explode( ' ', sanitize_text_field( wp_unslash( $_POST['value'] ) ) ); // Input var ok.
 
-		$type = $handle = '';
+		$type   = '';
+		$handle = '';
 		foreach ( $files as $item ) {
 			if ( 'css' === strtolower( $item ) ) {
 				$type = 'styles';
@@ -1357,7 +1611,7 @@ class AJAX {
 			die();
 		}
 
-		$assets = filter_input( INPUT_POST, 'data', FILTER_SANITIZE_STRING );
+		$assets = filter_input( INPUT_POST, 'data', FILTER_UNSAFE_RAW );
 		$assets = json_decode( html_entity_decode( $assets ), true );
 
 		Settings::update_setting( 'nocdn', $assets, 'minify' );
@@ -1474,6 +1728,13 @@ class AJAX {
 		$adv_module = Utils::get_module( 'advanced' );
 		$options    = $adv_module->get_options();
 
+		$remove_query_strings   = $options['query_string'];
+		$disable_cart_fragments = $options['cart_fragments'];
+		$remove_emojis          = $options['emoji'];
+		$prefetch_dns           = $options['prefetch'];
+		$lazy_comments          = $options['lazy_load']['enabled'];
+		$preconnect             = $options['preconnect'];
+
 		// General settings tab.
 		if ( 'advanced-general-settings' === $form ) {
 			$skip = isset( $options['query_strings_global'] ) && $options['query_strings_global'] && ! Utils::is_ajax_network_admin();
@@ -1494,6 +1755,11 @@ class AJAX {
 				$options['emoji_global'] = isset( $data['emojis_global'] ) && 'on' === $data['emojis_global'];
 			}
 
+			$options['post_revisions'] = '';
+			if ( isset( $data['post_revisions'] ) && $data['post_revisions'] >= 0 ) {
+				$options['post_revisions'] = $data['post_revisions'];
+			}
+
 			$options['prefetch'] = array();
 			if ( isset( $data['url_strings'] ) && ! empty( $data['url_strings'] ) ) {
 				$options['prefetch'] = preg_split( '/[\r\n\t ]+/', $data['url_strings'] );
@@ -1512,11 +1778,43 @@ class AJAX {
 				'method'    => isset( $data['method'] ) ? $data['method'] : 'click',
 				'button'    => isset( $data['button'] ) ? $data['button'] : '',
 				'threshold' => isset( $data['threshold'] ) ? $data['threshold'] : 0,
+				'preload'   => isset( $data['preload'] ) && 'on' === $data['preload'],
 			);
 		}
 
+		// Track MP event.
+		$mp_events = array();
+		if ( $remove_query_strings !== $options['query_string'] ) {
+			$mp_events[] = array( 'remove_query_strings' => $options['query_string'] );
+		}
+
+		if ( $disable_cart_fragments !== $options['cart_fragments'] ) {
+			$mp_events[] = array( 'disable_cart_fragments' => $options['cart_fragments'] );
+		}
+
+		if ( $remove_emojis !== $options['emoji'] ) {
+			$mp_events[] = array( 'remove_emojis' => $options['emoji'] );
+		}
+
+		if ( $prefetch_dns !== $options['prefetch'] ) {
+			$mp_events[] = array( 'prefetch_dns' => ! empty( $options['prefetch'] ) ? true : false );
+		}
+
+		if ( $preconnect !== $options['preconnect'] ) {
+			$mp_events[] = array( 'preconnect_domains' => ! empty( $options['preconnect'] ) ? true : false );
+		}
+
+		if ( $lazy_comments !== $options['lazy_load']['enabled'] ) {
+			$mp_events[] = array( 'lazy_comments' => $options['lazy_load']['enabled'] );
+		}
+
 		$adv_module->update_options( $options );
-		wp_send_json_success( array( 'success' => true ) );
+		wp_send_json_success(
+			array(
+				'success'   => true,
+				'mp_events' => $mp_events,
+			)
+		);
 	}
 
 	/**
@@ -1645,7 +1943,8 @@ class AJAX {
 		}
 		parse_str( sanitize_text_field( wp_unslash( $_POST['form_data'] ) ), $data ); // Input var ok.
 
-		$settings = Settings::get_settings( 'settings' );
+		$prev_mixpanel_value = Settings::get_setting( 'tracking', 'settings' );
+		$settings            = Settings::get_settings( 'settings' );
 
 		foreach ( $data as $setting => $value ) {
 			if ( ! isset( $settings[ $setting ] ) ) {
@@ -1660,8 +1959,14 @@ class AJAX {
 		}
 
 		Settings::update_settings( $settings, 'settings' );
+		$is_mixpanel_value_updated = $settings['tracking'] && $prev_mixpanel_value !== $settings['tracking'] ? true : false;
 
-		wp_send_json_success();
+		wp_send_json_success(
+			array(
+				'isMixpanelValueUpdated' => $is_mixpanel_value_updated,
+				'notice'                 => esc_html__( 'Settings updated', 'wphb' ),
+			)
+		);
 	}
 
 	/**
@@ -1710,28 +2015,14 @@ class AJAX {
 	}
 
 	/**
-	 * Toggle tracking from quick setup modal.
-	 *
-	 * @since 2.5.0
+	 * Deletes the flag to show upgrade summary.
 	 */
-	public function toggle_tracking() {
-		check_ajax_referer( 'wphb-fetch', 'nonce' );
-
+	public function hide_upgrade_summary() {
+		// Check permission.
 		if ( ! current_user_can( Utils::get_admin_capability() ) ) {
 			die();
 		}
 
-		$status = filter_input( INPUT_POST, 'status', FILTER_VALIDATE_BOOLEAN );
-
-		Settings::update_setting( 'tracking', $status, 'settings' );
-
-		wp_send_json_success();
-	}
-
-	/**
-	 * Deletes the flag to show upgrade summary.
-	 */
-	public function hide_upgrade_summary() {
 		delete_site_option( 'wphb_show_upgrade_summary' );
 		wp_send_json_success();
 	}
@@ -1918,6 +2209,234 @@ class AJAX {
 
 		wp_send_json_error(
 			array( 'error_msg' => esc_html( $response->get_error_message() ) )
+		);
+	}
+
+	/**
+	 * Purge Critical css files.
+	 *
+	 * @since 3.6.0
+	 */
+	public function clear_critical_css_files_and_regenerate() {
+		check_ajax_referer( 'wphb-fetch', 'nonce' );
+
+		if ( ! current_user_can( Utils::get_admin_capability() ) ) { // Input var okay.
+			die();
+		}
+
+		$status = Utils::get_module( 'critical_css' )->regenerate_critical_css();
+
+		wp_send_json_success(
+			array(
+				'success'          => true,
+				'htmlForStatusTag' => Utils::get_module( 'critical_css' )->get_html_for_status_tag(),
+			)
+		);
+	}
+
+	/**
+	 * Create critical css for selected page from Gutenberg post edit screen.
+	 *
+	 * @since 3.6.0
+	 */
+	public function gutenberg_create_css_file() {
+		check_ajax_referer( 'wphb-fetch', 'nonce' );
+
+		if ( ! current_user_can( 'edit_posts' ) || ! isset( $_POST['postId'] ) ) { // Input var okay.
+			die();
+		}
+
+		$id = absint( wp_unslash( $_POST['postId'] ) );
+
+		// Also clear cache.
+		Utils::get_module( 'page_cache' )->clear_cache_action( $id );
+
+		$status                          = Utils::get_module( 'critical_css' )->create_post_css_file( $id );
+		$single_post_critical_css_status = Utils::get_module( 'critical_css' )->get_single_post_critical_css_status( $id );
+
+		if ( 'error' === $single_post_critical_css_status ) {
+			$type      = get_post_type( $id ) . '-' . $id;
+			$get_error = Utils::get_module( 'critical_css' )->get_queue_item_by_type( $type );
+			$message   = isset( $get_error->error_message ) ? $get_error->error_message : esc_html__( 'There was some error in generating Critical CSS', 'wphb' );
+		} elseif ( 'processing' === $single_post_critical_css_status ) {
+			$message = esc_html__( 'Critical CSS is being generated', 'wphb' );
+		} else {
+			$message = esc_html__( 'Critical CSS generated', 'wphb' );
+		}
+
+		wp_send_json_success(
+			array(
+				'success'                     => $status,
+				'singlePostCriticalCSSStatus' => $single_post_critical_css_status,
+				'message'                     => $message,
+			)
+		);
+	}
+
+	/**
+	 * Re Create critical css for selected page from Gutenberg post edit screen.
+	 *
+	 * @since 3.6.0
+	 */
+	public function gutenberg_recreate_css_file() {
+		check_ajax_referer( 'wphb-fetch', 'nonce' );
+
+		if ( ! current_user_can( 'edit_posts' ) || ! isset( $_POST['postId'] ) ) { // Input var okay.
+			die();
+		}
+
+		$id = absint( wp_unslash( $_POST['postId'] ) );
+		// Also clear cache.
+		Utils::get_module( 'page_cache' )->clear_cache_action( $id );
+		$status                          = Utils::get_module( 'critical_css' )->recreate_post_css_file( $id );
+		$single_post_critical_css_status = Utils::get_module( 'critical_css' )->get_single_post_critical_css_status( $id );
+		$message                         = '';
+
+		if ( 'processing' === $single_post_critical_css_status ) {
+			$message = esc_html__( 'Critical CSS is being re-generated', 'wphb' );
+		} elseif ( 'error' === $single_post_critical_css_status ) {
+			$type      = get_post_type( $id ) . '-' . $id;
+			$get_error = Utils::get_module( 'critical_css' )->get_queue_item_by_type( $type );
+			$message   = isset( $get_error->error_message ) ? $get_error->error_message : esc_html__( 'There was some error in generating Critical CSS', 'wphb' );
+		} elseif ( $single_post_critical_css_status ) {
+			$message = esc_html__( 'Critical CSS re-generated', 'wphb' );
+		}
+
+		wp_send_json_success(
+			array(
+				'success'                     => $status,
+				'singlePostCriticalCSSStatus' => $single_post_critical_css_status,
+				'message'                     => $message,
+			)
+		);
+	}
+
+	/**
+	 * Create critical css for selected page from Gutenberg post edit screen.
+	 *
+	 * @since 3.6.0
+	 */
+	public function gutenberg_revert_css_file() {
+		check_ajax_referer( 'wphb-fetch', 'nonce' );
+
+		if ( ! current_user_can( 'edit_posts' ) || ! isset( $_POST['postId'] ) ) { // Input var okay.
+			die();
+		}
+
+		$id = absint( wp_unslash( $_POST['postId'] ) );
+
+		// Also clear cache.
+		Utils::get_module( 'page_cache' )->clear_cache_action( $id );
+		$status                          = Utils::get_module( 'critical_css' )->revert_post_css_file( $id );
+		$single_post_critical_css_status = Utils::get_module( 'critical_css' )->get_single_post_critical_css_status( $id );
+		$message                         = esc_html__( 'Critical CSS file deleted successfully', 'wphb' );
+
+		wp_send_json_success(
+			array(
+				'success'                     => $status,
+				'singlePostCriticalCSSStatus' => $single_post_critical_css_status,
+				'message'                     => $message,
+			)
+		);
+	}
+
+	/**
+	 * Get critical css status for single post.
+	 *
+	 * @since 3.6.0
+	 */
+	public function gutenberg_get_critical_status_for_single_post() {
+		check_ajax_referer( 'wphb-fetch', 'nonce' );
+
+		if ( ! current_user_can( 'edit_posts' ) || ! isset( $_POST['postId'] ) ) { // Input var okay.
+			die();
+		}
+
+		$id          = absint( wp_unslash( $_POST['postId'] ) );
+		$type        = get_post_type( $id ) . '-' . $id;
+		$item_detail = Utils::get_module( 'critical_css' )->get_queue_item_by_type( $type );
+
+		wp_send_json_success(
+			array(
+				'singlePostCriticalCSSStatus' => Utils::get_module( 'critical_css' )->get_single_post_critical_css_status( $id ),
+				'singlePostCriticalDetail'    => $item_detail,
+				'errorCode'                   => Utils::get_module( 'critical_css' )->get_error_code_from_log( (array) $item_detail ),
+			)
+		);
+	}
+
+	/**
+	 * Get critical css status for single post.
+	 *
+	 * @since 3.6.0
+	 */
+	public function get_critical_status_for_queue() {
+		check_ajax_referer( 'wphb-fetch', 'nonce' );
+
+		if ( ! current_user_can( Utils::get_admin_capability() ) ) { // Input var okay.
+			die();
+		}
+
+		$critical_css_log = Utils::get_module( 'critical_css' )->critical_css_status_for_queue();
+		$result           = isset( $critical_css_log['result'] ) ? $critical_css_log['result'] : false;
+		$error_message    = 'ERROR' === $result ? Utils::get_module( 'critical_css' )->critical_css_generation_complete_notice() : '';
+
+		wp_send_json_success(
+			array(
+				'criticalStatusForQueue' => $critical_css_log,
+				'criticalErrorMessage'   => $error_message,
+				'errorCode'              => Utils::get_module( 'critical_css' )->get_error_code_from_log(),
+				'htmlForStatusTag'       => Utils::get_module( 'critical_css' )->get_html_for_status_tag(),
+			)
+		);
+	}
+
+	/**
+	 * Toggle Delay Js.
+	 */
+	public function minification_toggle_delay() {
+		check_ajax_referer( 'wphb-fetch', 'nonce' );
+
+		if ( ! current_user_can( Utils::get_admin_capability() ) || ! isset( $_POST['data'] ) ) { // Input var okay.
+			die();
+		}
+
+		$value = filter_input( INPUT_POST, 'data', FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE );
+		Utils::get_module( 'delayjs' )->toggle_delay_js( $value );
+		$pc_module = Utils::get_module( 'page_cache' );
+		// Clear the cache.
+		$status = $pc_module->clear_cache();
+		$notice = esc_html__( 'Settings updated', 'wphb' );
+
+		wp_send_json_success(
+			array(
+				'delay_js'         => $value,
+				'delay_js_timeout' => Settings::get_setting( 'delay_js_timeout', 'minify' ),
+				'delay_js_exclude' => Settings::get_setting( 'delay_js_exclusions', 'minify' ),
+				'notice'           => $notice,
+			)
+		);
+	}
+
+	/**
+	 * Toggle Critical CSS.
+	 */
+	public function minify_toggle_critical_css() {
+		check_ajax_referer( 'wphb-fetch', 'nonce' );
+
+		if ( ! current_user_can( Utils::get_admin_capability() ) || ! isset( $_POST['data'] ) ) { // Input var okay.
+			die();
+		}
+
+		$value = filter_input( INPUT_POST, 'data', FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE );
+		Utils::get_module( 'critical_css' )->toggle_critical_css( $value );
+
+		wp_send_json_success(
+			array(
+				'criticalCss'      => $value ? 'activate' : 'deactivate',
+				'htmlForStatusTag' => Utils::get_module( 'critical_css' )->get_html_for_status_tag(),
+				'mode'             => Settings::get_setting( 'critical_css_type', 'minify' ),
+			)
 		);
 	}
 }

@@ -1,547 +1,369 @@
 <?php
 /* Template Name: Home*/
 ?>
-<!DOCTYPE html>
-<html lang="pt-BR">
-
-<head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet"
-        integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
-    <link href="<?php echo get_template_directory_uri(). '/assets/css/style.css'; ?>" rel="stylesheet">
-    <link href='http://fonts.googleapis.com/css?family=Lato:400,700' rel='stylesheet' type='text/css'>
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Open+Sans+Condensed:wght@700&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap" rel="stylesheet">
-    <title>Artvison</title>
-</head>
-
-<body>
-    <main>
-        <div class="container-fluid">
-            <nav class="navbar fixed-top navbar-expand-lg" id="hide-menu" style="display: none;">
-                <div class="container">
-                    <a class="navbar-brand" href="#">Artvison</a>
-                    <div class="container">
-                        <div class="d-none d-sm-block d-sm-none d-md-block">
-                            <a class="navbar-brand" href="#">
-                                <img src="<?php echo get_template_directory_uri(). '/assets/images/home/Artvison.png" alt="" width="50" height="50"'; ?>">
-                            </a>
-                        </div>
-                    </div>
-                    <div class="collapse navbar-collapse" id="navbarNavDropdown">
-                        <ul class="navbar-nav ms-auto flex-nowrap">
-                            <li class="nav-item">
-                                <a class="nav-link active" aria-current="page" href="#">Home</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" href="#company">Empresa</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" href="#services">Serviço</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" href="#products">Produto</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" href="#contact-us">Contato</a>
-                            </li>
-                        </ul>
-                    </div>
-                </div>
-            </nav>
-            <section id="Home">
-                <nav class="my-nav navbar navbar-expand-lg navbar-light bg-light pull-right">
-                    <div class="container">
-                        <div class="container">
-                            <div class="d-none d-sm-block d-sm-none d-md-block">
-                                <a class="navbar-brand" href="#">
-                                    <img src="<?php echo get_template_directory_uri(). '/assets/images/home/Artvison.png" alt="" width="100" height="100"'; ?>">
-                                </a>
-                            </div>
-                        </div>
-                        <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
-                            data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent"
-                            aria-expanded="false" aria-label="Toggle navigation">
-                            <span class="navbar-toggler-icon"></span>
-                        </button>
-                        <div class="collapse navbar-collapse" id="navbarSupportedContent">
-                            <ul class="navbar-nav ms-auto flex-nowrap">
-                                <li class="nav-item px-3">
-                                    <a class="nav-link active" aria-current="page" href="#">Home</a>
-                                </li>
-                                <li class="nav-item px-3">
-                                    <a class="nav-link" href="#company">Empresa</a>
-                                </li>
-                                <li class="nav-item px-3">
-                                    <a class="nav-link" href="#services">Serviço</a>
-                                </li>
-                                <li class="nav-item px-3">
-                                    <a class="nav-link" href="#products">Produto</a>
-                                </li>
-                                <li class="nav-item px-3">
-                                    <a class="nav-link" href="#contact-us">Contato</a>
-                                </li>
-                            </ul>
-                        </div>
-                    </div>
-                </nav>
-                <div id="carouselExampleCaptions" class="my-carousel carousel slide" data-bs-ride="carousel">
-                <div class="carousel-indicators">
-                    <button type="button" data-bs-target="#carouselExampleCaptions" data-bs-slide-to="0" class="active"
-                        aria-current="true" aria-label="Slide 1"></button>
-                    <button type="button" data-bs-target="#carouselExampleCaptions" data-bs-slide-to="1"
-                        aria-label="Slide 2"></button>
-                    <button type="button" data-bs-target="#carouselExampleCaptions" data-bs-slide-to="2"
-                        aria-label="Slide 3"></button>
-                </div>
-                <div class="carousel-inner display-2">
-                <div class="carousel-item active">
-                        <img src="<?php echo get_field('image_slick_image_1'); ?>" class="d-block w-100 h-100 position-absolute"
-                            alt="...">
-                        <div class="carousel-caption d-none d-md-block text-center">
-                            <p class="title-images"><?php echo get_field('image_slick_text_1'); ?></p>
-                            <div id="contact" class="text-center mt-xl-5">
-                                <a class="btn btn-light image-button fw-bold" href="tel:+55 113993-4241"
-                                    target="_blank">Telefonar</a>
-                                <a class="btn btn-light image-button fw-bold" href="https://wa.me/551139934241"
-                                    target="_blank">Whatsapp</a>
-                                <a class="btn btn-light image-button fw-bold" href="javascript:void(0);">E-mail</a>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="carousel-item">
-                        <img src="<?php echo get_field('image_slick_image_2'); ?>" class="d-block w-100 h-100 position-absolute" alt="...">
-                        <div class="carousel-caption d-none d-md-block">
-                            <p class="title-images"><?php echo get_field('image_slick_text_2'); ?></p>
-                        </div>
-                    </div>
-                    <div class="carousel-item">
-                        <img src="<?php echo get_field('image_slick_image_3'); ?>"
-                            class="d-block w-100 h-100 position-absolute" alt="...">
-                        <div class="carousel-caption d-none d-md-block">
-                            <p class="title-images"><?php echo get_field('image_slick_text_3'); ?></p>
-                        </div>
-                    </div>
-                    <button class="carousel-control-prev" type="button" data-bs-target="#carouselExampleCaptions"
-                        data-bs-slide="prev">
-                        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-                        <span class="visually-hidden">Previous</span>
-                    </button>
-                    <button class="carousel-control-next" type="button" data-bs-target="#carouselExampleCaptions"
-                        data-bs-slide="next">
-                        <span class="carousel-control-next-icon" aria-hidden="true"></span>
-                        <span class="visually-hidden">Next</span>
-                    </button>
-                </div>
-                <button class="carousel-control-prev" type="button" data-bs-target="#carouselExampleCaptions"
-                    data-bs-slide="prev">
-                    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-                    <span class="visually-hidden">Previous</span>
-                </button>
-                <button class="carousel-control-next" type="button" data-bs-target="#carouselExampleCaptions"
-                    data-bs-slide="next">
-                    <span class="carousel-control-next-icon" aria-hidden="true"></span>
-                    <span class="visually-hidden">Next</span>
-                </button>
-            </div>
-            </section>
-            <section id="company" class="mt-5">
-                <div class="row " id="mission">
-                    <?php
-                        if( have_rows('quality') ):
-                            while( have_rows('quality') ): the_row();
-                                // Variáveis
-                                $image = get_sub_field('image');
-                                $title = get_sub_field('title');
-                                $description = get_sub_field('description');
-                                echo' <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12 text-center box-icon">
-                                        <div class="align-icon">
-                                            <span>'.$image.'</i></span>
-                                        </div>
-                                        <br />
-                                        <h5>'.$title.'</h5>
-                                        <p>'.$description.'</p>
-                                    </div>';
-                            endwhile;
-                        endif;
-                    ?>
-                </div>
-                <div class="mt-5">
-                    <div class="row">
-                        <div class="col-lg-5 col-md-5 col-sm-12 col-xs-12" id="about">
-                            <span class="title">
-                                <h2><?php echo get_field('title_history'); ?></h2>
-                            </span>
-                            <div class="row">
-                                <p><?php echo get_field('description_history'); ?></p>
-                                <?php
-                                    if( have_rows('mission_value') ):
-                                        while( have_rows('mission_value') ): the_row();
-                                            // Variáveis
-                                            $image = get_sub_field('image');
-                                            $title = get_sub_field('title');
-                                            $description = get_sub_field('description');
-                                            echo'<h5 class="title-about"><span class="icon-title">
-                                                '.$image.'</span>'.$title.'
-                                                </h5>
-                                                <p>'.$description.'</p>';
-                                        endwhile;
-                                    endif;
-                                ?>
-                            </div>
-                        </div>
-                        <div class="col-lg-7 col-md-7 col-sm-12 col-xs-12">
-                            <div class="parallax"></div>
-                        </div>
-                    </div>
-                </div>
-            </section>
-            <section id="services" class="mt-7">
-                <div class="row" id="our-services">
-                    <div class="col-lg-3 col-md-12 col-sm-12 col-xs-12" id="our_services_title">
-                        <div class="float-end">
-                            <h2 class="mt-7">
-                                <?php echo get_field ('title_services');?>
-                            </h2>
-                        </div>
-                    </div>
-                    <div class="col-lg-8 col-md-8 col-sm-12 col-xs-12 mt-2">
-                        <div class="ps-5">
-                            <div class="row">
-                            <?php
-                                if( have_rows('divisorias') ):
-                                    while( have_rows('divisorias') ): the_row();
-                                        // Variáveis
-                                        $image = get_sub_field('image');
-                                        $title = get_sub_field('title');
-                                        echo'<div class="col-lg-6 col-md-6 col-sm-12 col-xs-12 mt-2">
-                                                <h4>
-                                                    <p class="mouse-event-service">'.$image.''.$title.'</p>
-                                                </h4>';
-                                                if( have_rows('description') ):
-                                                    while( have_rows('description') ): the_row();
-                                                    $image = get_sub_field('image');
-                                                    $description = get_sub_field('description');
-                                                    echo'<p class="sub-service ms-3">
-                                                            <span class="mouse-event-service">'.$image.''.$description.'</span>
-                                                        </p>';
-                                                    endwhile;
-                                                endif;
-                                        echo'</div>';                
-                                    endwhile;
-                                endif;
-                            ?>   
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </section>
-            <section id="products">
-                <div id="Unloader_products">
-                    <div class="row">
-                        <div class="col-lg-4 col-md-12 col-sm-12 col-xs-12 ">
-                            <div class="position-relative px-2 py-2 container-image-right-top float-end mt-6">
-                                <div class="text-block">
-                                    <h5 class="text-show"><?php echo get_field('produtos_forro_modular_titulo_forro_modular'); ?></h5>
-                                    <h5 class="text-hover">
-                                        <ul>
-                                            <li><a href="#Products" page="<?php echo get_template_directory_uri(). '/mineral_fiber.php' ; ?>"
-                                                    class="link-image-work button-load"><?php echo get_field('produtos_forro_modular_fibra_mineral'); ?>
-                                            <li><a href="#Products" page="<?php echo get_template_directory_uri(). '/polystyrene.php'; ?>"
-                                                    class="link-image-work button-load"><?php echo get_field('produtos_forro_modular_isopor'); ?></a></li>
-                                            <li><a href="#Products" page="<?php echo get_template_directory_uri(). '/glass_wool.php'; ?>"
-                                                    class="link-image-work button-load"><?php echo get_field('produtos_forro_modular_la_de_vidro'); ?></a></li>
-                                        </ul>
-                                    </h5>
-                                </div>
-                                <img src="<?php echo get_template_directory_uri(). '/assets/images/Foto_Obras/Forros/modular/Fibra_mineral/Fibra-Mineral.png'; ?>"
-                                    class="img-fluid rounded-circle image-work" alt="..." />
-                            </div>
-                        </div>
-                        <div class="col-lg-4 col-md-12 col-sm-12 col-xs-12">
-                            <div class="container-image text-center">
-                                <div class="text-block">
-                                    <h5 class="text-show"><?php echo get_field('produtos_dry_wall_titulo_dry_wall'); ?></h5>
-                                    <h5 class="text-hover">
-                                        <ul>
-                                        <li><a href="#Products" page="<?php echo get_template_directory_uri(). '/wall.php'; ?>"
-                                                    class="link-image-work button-load"><?php echo get_field('produtos_dry_wall_dry_wall_parede'); ?></a></li>
-                                            <li><a href="#Products" page="<?php echo get_template_directory_uri(). '/plaster.php'; ?>"
-                                                    class="link-image-work button-load"><?php echo get_field('produtos_dry_wall_dry_wall_forro'); ?></a></li>
-                                        </ul>
-                                    </h5>
-                                </div>
-                                <img src="<?php echo get_template_directory_uri(). '/assets/images/Foto_Obras/Dry Wall/forro/Dry-Wall-Forro.JPG'; ?>"
-                                    class="img-fluid rounded-circle image-work" alt="..."/>
-                            </div>
-                        </div>
-                        <div class="col-lg-4 col-md-12 col-sm-12 col-xs-12">
-                            <div class="container-image container-image-left-top float-start mt-6">
-                                <div class="text-block text-block-left-top">
-                                    <h5 class="text-show"><?php echo get_field('produtos_eucatex_titulo_eucatex'); ?></h5>
-                                    <h5 class="text-hover">
-                                        <ul>
-                                            <li><a href="#Products" page="<?php echo get_template_directory_uri(). '/eucatex_divider.php'; ?>"
-                                                    class="link-image-work button-load"><?php echo get_field('produtos_eucatex_divisoria_eucatex'); ?></a></li>
-                                        </ul>
-                                    </h5>
-                                </div>
-                                <img src="<?php echo get_template_directory_uri(). '/assets/images/Foto_Obras/divisórias Eucatex/Divisoria-Eucatex.jpg'; ?>"
-                                    class="img-fluid rounded-circle image-work" alt="..." />
-                            </div>
-                        </div>
-                        <div class="col-lg-4 col-md-12 col-sm-12 col-xs-12">
-                            <div class="container-image text-center">
-                                <div class="text-block">
-                                    <h5 class="text-show"><?php echo get_field('produtos_office_linha_90mm_titulo_office'); ?></h5>
-                                    <h5 class="text-hover">
-                                        <ul>
-                                            <li><a href="#Products"
-                                                    page="<?php echo get_template_directory_uri(). '/office_divider_line_90mm.php'; ?>"
-                                                    class="link-image-work button-load"><?php echo get_field('produtos_office_linha_90mm_divisoria_office_linha_90mm'); ?></a></li>
-                                        </ul>
-                                    </h5>
-                                </div>
-                                <img src="<?php echo get_template_directory_uri(). '/assets/images/Foto_Obras/divisória office Linha 90mm/Divisoria-Office-Linha-90mm.jpeg'; ?>"
-                                    class="img-fluid rounded-circle image-work" alt="..." />
-                            </div>
-                        </div>
-                        <div class="col-lg-4 col-md-12 col-sm-12 col-xs-12" id="our-products">
-                            <h2 class="mt-5 display-1 text-center">
-                                <?php echo get_field('title_products'); ?>
-                            </h2>
-                        </div>
-                        <div class="col-lg-4 col-md-12 col-sm-12 col-xs-12">
-                            <div class="container-image text-center">
-                                <div class="text-block">
-                                    <h5 class="text-show"><?php echo get_field('produtos_forro_pvc_titulo_forro_pvc'); ?></h5>
-                                    <h5 class="text-hover">
-                                        <ul>
-                                            <li><a href="#Products" page="<?php echo get_template_directory_uri(). '/pvc_lining.php'; ?>"
-                                                    class="link-image-work button-load"><?php echo get_field('produtos_forro_pvc_forro_pvc'); ?></a>
-                                            </li>
-                                        </ul>
-                                    </h5>
-                                </div>
-                                <img src="<?php echo get_template_directory_uri(). '/assets/images/Foto_Obras/Forros/PVC_réguas/art11.png'; ?>"
-                                    class="img-fluid rounded-circle image-work" alt="..." />
-                            </div>
-                        </div>
-                        <div class="col-lg-4 col-md-12 col-sm-12 col-xs-12">
-                            <div class="container-image container-image-right-bottom float-end mb-2">
-                                <div class="text-block text-block-right-bottom">
-                                    <h5 class="text-show"><?php echo get_field('produtos_divisoria_sanitaria_eucatex_titulo_divisoria_sanitaria_eucatex'); ?></h5>
-                                    <h5 class="text-hover">
-                                        <ul>
-                                            <li><a href="#Products" page="<?php echo get_template_directory_uri(). '/eucatex_sanitary_partition.php'; ?>"
-                                                    class="link-image-work button-load"><?php echo get_field('produtos_divisoria_sanitaria_eucatex_divisoria_sanitaria_eucatex'); ?></a></li>
-                                        </ul>
-                                    </h5>
-                                </div>
-                                <img src="<?php echo get_template_directory_uri(). '/assets/images/Foto_Obras/Div. Sanitaria PVC ou eucatex/Div. Sant. PVC 1.jpg'; ?>"
-                                    class="img-fluid rounded-circle image-work" alt="..." />
-                            </div>
-                        </div>
-                        <div class="col-lg-4 col-md-12 col-sm-12 col-xs-12">
-                            <div class="container-image text-center">
-                                <div class="text-block">
-                                    <h5 class="text-show"><?php echo get_field('produtos_divisoria_sanitaria_pvc_titulo_divisoria_sanitaria_pvc'); ?></h5>
-                                    <h5 class="text-hover">
-                                        <ul>
-                                            <li><a href="#Products" page="<?php echo get_template_directory_uri(). '/sanitary_part_pvc.php'; ?>"
-                                                    class="link-image-work button-load"><?php echo get_field('produtos_divisoria_sanitaria_pvc_divisoria_sanitaria_pvc'); ?>
-                                                    <br />PVC</a></li>
-                                        </ul>
-                                    </h5>
-                                </div>
-                                <img src="<?php echo get_template_directory_uri(). '/assets/images/Foto_Obras/Div. Sanitaria PVC ou eucatex/Divisoria-Sanitaria-PVC.jpg'; ?>"
-                                    class="img-fluid rounded-circle image-work" alt="..." />
-                            </div>
-                        </div>
-                        <div class="col-lg-4 col-md-12 col-sm-12 col-xs-12">
-                            <div class="container-image container-image-left-bottom float-start mb-2">
-                                <div class="text-block text-block-left-bottom">
-                                    <h5 class="text-show"><?php echo get_field('produtos_divisoria_sanitaria_ts_titulo_divisoria_sanitaria_ts'); ?></h5>
-                                    <h5 class="text-hover">
-                                        <ul>
-                                            <li><a href="#Products"
-                                                    page="<?php echo get_template_directory_uri(). '/sanitary_partition_ts.php'; ?>"
-                                                    class="link-image-work button-load"><?php echo get_field('produtos_divisoria_sanitaria_ts_divisoria_sanitaria_ts'); ?>
-                                            </li>
-                                        </ul>
-                                    </h5>
-                                </div>
-                                <img src="<?php echo get_template_directory_uri(). '/assets/images/Foto_Obras/Div sanitária. TS/Divsoria-Sanitaria-TS-2.jpeg'; ?>"
-                                    class="img-fluid rounded-circle image-work" alt="..." />
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="loader_event" style="display: none;">
-                    <butto id="closeButton" class="position-fixed"><i class="fas fa-arrow-left"></i> Voltar</button>
-                </div>
-                <div id="loader" class="loader_event position-relative w-100 h-100 overflow-hidden" style="display: none;">
-                    <div id="load_products"></div>
-                </div>
-            </section>
-            <section id="contact-us">
-                <div class="row form-contact">
-                    <div class="col-lg-7 col-md-7 col-sm-12 col-xs-12 mt-2" id="OurServices_body">
-                    <form id="formExemplo" method="POST">
-                        <?php echo do_shortcode( '[contact-form-7 id="260" title="Contact"]' ); ?>
-                    </form>
-                    </div>
-                    <div class="col-lg-3 col-md-12 col-sm-12 col-xs-12 text-center" id="contact-us-tile">
-                        <h2 class="mt-7 display-1 text-center">
-                            <span>Fale</span>
-                            <br />
-                            <span style="color: #3C3C3E;">Conosco</h5>
-                        </h2>
-                    </div>
-                </div>
-            </section>
-            <br />
-            <br />
-            <!-- Footer -->
-            <footer class="text-center text-lg-start" style="background-color: #3C3C3E; color: white;">
-                <!-- Section: Social media -->
-                <section class="d-flex justify-content-center justify-content-lg-between p-4 border-bottom">
-                    <!-- Left -->
-                    <div class="me-5 d-none d-lg-block">
-                        <span>Conheça nossas redes sociais:</span>
-                    </div>
-                    <!-- Left -->
-
-                    <!-- Right -->
-                    <div>
-                        <a href="https://www.facebook.com/artvison.artvison" class="me-4 text-reset" target="_blank">
-                            <i class="fab fa-facebook-f"></i>
-                        </a>
-                        <a href="https://www.instagram.com/_artvison/" class="me-4 text-reset" target="_blank">
-                            <i class="fab fa-instagram"></i>
-                        </a>
-                    </div>
-                    <!-- Right -->
-                </section>
-                <!-- Section: Social media -->
-
-                <!-- Section: Links  -->
-                <section class="">
-                    <div class="container text-center text-md-start mt-5">
-                        <!-- Grid row -->
-                        <div class="row mt-3">
-                            <!-- Grid column -->
-                            <div class="col-md-3 col-lg-4 col-xl-3 mx-auto mb-4">
-                                <!-- Content -->
-                                <h6 class="text-uppercase fw-bold mb-4">
-                                    <i class="fas fa-building me-3"></i>Artvison Forros e Divisórias
-                                </h6>
-                                <p>
-                                    A ART VISON, uma das principais empresas especializadas no mercado de divisórias, forros
-                                    e
-                                    dry wall, desde 1991, distribui seus produtos com qualidade, garantia, rapidez e mão de
-                                    obra
-                                    especializada.
-                                </p>
-                            </div>
-                            <!-- Grid column -->
-
-                            <!-- Grid column -->
-                            <div class="col-md-2 col-lg-2 col-xl-2 mx-auto mb-4">
-                                <!-- Links -->
-                                <h6 class="text-uppercase fw-bold mb-4">
-                                    Produtos
-                                </h6>
-                                <p>
-                                    Forro Modular
-                                </p>
-                                <p>
-                                    Dry Wall
-                                </p>
-                                <p>
-                                    Divisória Eucatex
-                                </p>
-                                <p>
-                                    Forro PVC
-                                    Divisória Office Linha 90mm
-                                </p>
-                                <p>
-                                    Divisória Sanitaria
-                                </p>
-                            </div>
-                            <!-- Grid column -->
-
-                            <!-- Grid column -->
-                            <div class="col-md-3 col-lg-2 col-xl-2 mx-auto mb-4">
-                                <!-- Links -->
-                                <h6 class="text-uppercase fw-bold mb-4">
-                                    Useful links
-                                </h6>
-                                <p>
-                                    <a href="#" class="text-reset">Home</a>
-                                </p>
-                                <p>
-                                    <a href="#company" class="text-reset">Empresa</a>
-                                </p>
-                                <p>
-                                    <a href="#services" class="text-reset">Serviço</a>
-                                </p>
-                                <p>
-                                    <a href="#products" class="text-reset">Produto</a>
-                                </p>
-                                <p>
-                                    <a href="#contact-us" class="text-reset">Contato</a>
-                                </p>
-                            </div>
-                            <!-- Grid column -->
-
-                            <!-- Grid column -->
-                            <div class="col-md-4 col-lg-3 col-xl-3 mx-auto mb-md-0 mb-4">
-                                <!-- Links -->
-                                <h6 class="text-uppercase fw-bold mb-4">
-                                    Contato
-                                </h6>
-                                <p><i class="fas fa-home me-3"></i>Rua Encruzilhada do Sul, 532 - Jd. Paulistano - São Paulo
-                                    - SP <br /> Cep 02816-010</p>
-                                <p>
-                                    <i class="fas fa-envelope me-3"></i>
-                                    artvison@artvison.com.br
-                                </p>
-                                <p><i class="fas fa-phone me-3"></i> (11) 3993-4241</p>
-                            </div>
-                            <!-- Grid column -->
-                        </div>
-                        <!-- Grid row -->
-                    </div>
-                </section>
-                <!-- Section: Links  -->
-    </main>
-            <!-- Copyright -->
-            <div class="text-center p-4" style="background-color: rgba(0, 0, 0, 0.05);">
-                <span class="text-reset fw-bold">Artvison</span>
-            </div>
-            <!-- Copyright -->
-        </footer>
-        <!-- Footer -->
+<?php get_header(); ?>
+  <!-- ======= Hero Section ======= -->
+  <section id="hero" class="d-flex align-items-center">
+    <div class="container">
+      <div class="row">
+        <div class="col-lg-6 pt-5 pt-lg-0 order-2 order-lg-1 d-flex flex-column justify-content-center">
+          <h1><?php echo get_field('pimeira_secao_titulo'); ?></h1>
+          <h2><?php echo get_field('pimeira_secao_descricao'); ?></h2>
+          <div class="d-flex">
+            <a href="#about" class="btn-get-started scrollto"><?php echo get_field('pimeira_secao_nome_botao'); ?></a>
+            <!-- <a href="https://www.youtube.com/watch?v=jDDaplaOz7Q" class="glightbox btn-watch-video"><i class="bi bi-play-circle"></i><span>Watch Video</span></a> -->
+          </div>
+        </div>
+        <div class="d-flex justify-content-center col-lg-6 order-1 order-lg-2 hero-img">
+          <img loading=”lazy” src="<?php echo get_field('pimeira_secao_imagem'); ?>" class="img-fluid animated" alt="Art Vison - Divisórias e Forros">
+        </div>
+      </div>
     </div>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"
-        integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM"
-        crossorigin="anonymous"></script>
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-    <script type="text/javascript" src="./js/jquery.mask.min.js"></script>
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.mask/1.14.11/jquery.mask.min.js"></script>
-    <script src="https://kit.fontawesome.com/e4a553e910.js" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"
-        integrity="sha384-IQsoLXl5PILFhosVNubq5LC7Qb9DXgDA9i+tQ8Zj3iwWAwPtgFTxbJ8NT4GN1R8p"
-        crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.min.js"
-        integrity="sha384-cVKIPhGWiC2Al4u+LWgxfKTRIcfu0JTxR+EQDz/bgldoEyl4H0zUF0QKbrJ0EcQF"
-        crossorigin="anonymous"></script>
-    <script src="<?php echo get_template_directory_uri(). '/assets/js/script.js'; ?>"></script>
-</body>
 
-</html>
+  </section><!-- End Hero -->
+
+  <main id="main">
+
+    <!-- ======= Featured Services Section ======= -->
+    <section id="featured-services" class="featured-services">
+      <div class="container">
+
+        <div class="row">
+          <div class="col-lg-4 col-md-6">
+            <div class="icon-box">
+              <div class="icon"><?php echo get_field('segunda_secao_icone_missao'); ?></div>
+              <h4 class="title"><?php echo get_field('segunda_secao_titulo_missao'); ?></h4>
+              <p class="description"><?php echo get_field('segunda_secao_descricao_missao'); ?></p>
+            </div>
+          </div>
+          <div class="col-lg-4 col-md-6 mt-4 mt-md-0">
+            <div class="icon-box">
+              <div class="icon"><?php echo get_field('segunda_secao_icone_valores'); ?></div>
+              <h4 class="title"><?php echo get_field('segunda_secao_titulo_valores'); ?></h4>
+              <p class="description"><?php echo get_field('segunda_secao_descricao_valores'); ?></p>
+            </div>
+          </div>
+          <div class="col-lg-4 col-md-6 mt-4 mt-lg-0">
+            <div class="icon-box">
+             <div class="icon"><?php echo get_field('segunda_secao_icone_visao'); ?></div>
+              <h4 class="title"><?php echo get_field('segunda_secao_titulo_visao'); ?></h4>
+              <p class="description"><?php echo get_field('segunda_secao_descricao_visao'); ?></p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section><!-- End Featured Services Section -->
+
+    <!-- ======= About Section ======= -->
+    <section id="about" class="about">
+      <div class="container">
+
+        <div class="row">
+          <div class="col-lg-6">
+            <img loading=”lazy” src="<?php echo get_field('terceira_secao_imagem'); ?>" class="img-fluid" alt="Sobre a Empresa">
+          </div>
+          <div class="col-lg-6 pt-4 pt-lg-0 content">
+            <h3><?php echo get_field('terceira_secao_titulo'); ?></h3>
+            <p class="fst-italic">
+             <?php echo get_field('terceira_secao_primeira_descricao'); ?>
+            </p>
+            <ul>
+                <?php
+                    if( have_rows('terceira_secao_qualidades') ):
+                        while( have_rows('terceira_secao_qualidades') ): the_row();
+                            // Variáveis
+                            $icone = get_sub_field('html_icone_verificado');
+                            $descricao = get_sub_field('descricao_qualidade');
+                            echo' <li>'.$icone. $descricao.'</li>';
+                        endwhile;
+                    endif;
+                ?>
+            </ul>
+            <p>
+               <?php echo get_field('terceira_secao_ultima_descricao'); ?>
+            </p>
+          </div>
+        </div>
+
+      </div>
+    </section><!-- End About Section -->
+
+    <!-- ======= Counts Section ======= -->
+    <section id="counts" class="counts">
+      <div class="container">
+
+        <div class="row counters">
+
+          <div class="col-lg-3 col-6 text-center">
+            <span data-purecounter-start="0" data-purecounter-end="386" data-purecounter-duration="1" class="purecounter"></span>
+            <p><?php echo get_field('terceira_secao_titulo_clientes'); ?></p>
+          </div>
+
+          <div class="col-lg-3 col-6 text-center">
+            <span data-purecounter-start="0" data-purecounter-end="18572" data-purecounter-duration="1" class="purecounter"></span>
+            <p><?php echo get_field('terceira_secao_titulo_orcamentos'); ?></p>
+          </div>
+
+          <div class="col-lg-3 col-6 text-center">
+            <span data-purecounter-start="0" data-purecounter-end="11437" data-purecounter-duration="1" class="purecounter"></span>
+            <p><?php echo get_field('terceira_secao_titulo_obras'); ?></p>
+          </div>
+
+          <div class="col-lg-3 col-6 text-center">
+            <span data-purecounter-start="0" data-purecounter-end="27956" data-purecounter-duration="1" class="purecounter"></span>
+            <p><?php echo get_field('terceira_secao_titulo_metros_quadrados_instalados'); ?></p>
+          </div>
+
+        </div>
+
+      </div>
+    </section><!-- End Counts Section -->
+
+    <!-- ======= Services Section ======= -->
+    <section id="services" class="services section-bg">
+      <div class="container">
+
+        <div class="section-title">
+          <span><?php echo get_field('quarta_secao_titulo'); ?></span>
+          <h2><?php echo get_field('quarta_secao_titulo'); ?></h2>
+          <p><?php echo get_field('quarta_secao_descricao'); ?></p>
+        </div>
+
+        <div class="row">
+            
+            <?php
+                if( have_rows('quarta_secao_servicos') ):
+                    while( have_rows('quarta_secao_servicos') ): the_row();
+                        // Variáveis
+                        $icone = get_sub_field('icone');
+                        $titulo = get_sub_field('titulo');
+                        $descricao = get_sub_field('descricao');
+                        echo'<div class="col-lg-4 col-md-6 d-flex align-items-stretch mt-4">
+                                <div class="icon-box">
+                                  <div class="icon">'.$icone.'</div>
+                                  <h4>'.$titulo.'</h4>
+                                  <p>'.$descricao.'</p>
+                                </div>
+                              </div>';
+                    endwhile;
+                endif;
+            ?>
+        </div>
+
+      </div>
+    </section><!-- End Services Section -->
+
+    <!-- ======= Portfolio Section ======= -->
+    <section id="products" class="portfolio">
+      <div class="container">
+
+        <div class="section-title">
+          <span>Produtos</span>
+          <h2>Produtos</h2>
+          <p>Conheça Nossa Arte: Explore Nossa Galeria de Projetos!</p>
+        </div>
+
+        <div class="row">
+          <div class="col-lg-12 d-flex justify-content-center">
+            <ul id="portfolio-flters">
+              <li data-filter="*" class="filter-active">Todos</li>
+                <? $categorys = get_terms( array(
+                    'taxonomy'   => 'categorys',
+                    'hide_empty' => false,
+                    ) );
+                    foreach($categorys as $key => $value) { 
+                        echo "<li data-filter='.filter-" . $value->slug . "'>" . $value->name . ""; 
+                    } 
+                    ?>
+            </ul>
+          </div>
+        </div>
+
+        <div class="row portfolio-container">
+            
+            <?php
+                $args = array(  
+                    'post_type' => 'produtos',
+                    'post_status' => 'publish',
+                    'posts_per_page' => -1, 
+                    'orderby' => 'rand',
+                );
+            
+                $loop = new WP_Query( $args ); 
+                    
+                while ( $loop->have_posts() ) : $loop->the_post(); 
+                ?>
+                <div class="col-lg-4 col-md-6 portfolio-item filter-<?php echo get_the_terms($post->ID, 'categorys')[0]->slug ?>">
+                    <img loading=”lazy” src="<?php the_post_thumbnail_url(); ?>" class="img-fluid" alt="Forro PVC">
+                    <div class="portfolio-info">
+                      <div class="d-flex justify-content-between align-items-center">
+                        <h4><?php the_title();  ?></h4>
+                        <div>
+                          <a href="<?php the_post_thumbnail_url(); ?>" data-gallery="portfolioGallery" class="portfolio-lightbox preview-link" title="<?php the_title(); ?>"><i class="bx bx-plus"></i></a>
+                          <a href="<?php echo the_permalink(); ?>" class="details-link" title="More Details"><i class="bx bx-link"></i></a>
+                        </div>
+                      </div>
+                      <p><?php echo get_field( "informacoes_obras_breve_descricao", $post->ID); ?></p>
+                    </div>
+                 </div>
+                    <?php
+                endwhile;
+                ?>
+            <?php
+                wp_reset_postdata(); 
+            ?>  
+        </div>
+      </div>
+    </section><!-- End Portfolio Section -->
+
+     <!-- ======= Testimonials Section ======= -->
+    <section id="testimonials" class="testimonials section-bg">
+      <div class="container">
+
+        <div class="section-title">
+          <span><?php echo get_field('sexta_secao_titulo'); ?></span>
+          <h2><?php echo get_field('sexta_secao_titulo'); ?></h2>
+          <p><?php echo get_field('sexta_secao_descricao'); ?></p>
+        </div>
+
+        <div class="testimonials-slider swiper" data-aos="fade-up" data-aos-delay="100">
+          <div class="swiper-wrapper" style="background-color: ">
+
+            <?php
+                if( have_rows('sexta_secao_pessoas_do_feddback') ):
+                    while( have_rows('sexta_secao_pessoas_do_feddback') ): the_row();
+                        // Variáveis
+                        $foto = get_sub_field('foto');
+                        $nome = get_sub_field('nome');
+                        $cargo = get_sub_field('cargo');
+                        $descricao_feedback = get_sub_field('descricao_feedback');
+                        echo'<div class="swiper-slide">
+                              <div class="testimonial-item">
+                                <p>
+                                  <i class="bx bxs-quote-alt-left quote-icon-left"></i>
+                                 '.$descricao_feedback.'
+                                  <i class="bx bxs-quote-alt-right quote-icon-right"></i>
+                                </p>
+                                <img loading=”lazy” src="'.$foto.'" class="testimonial-img" alt="'.$nome.'">
+                                <h3>'.$nome.'</h3>
+                                <h4>'.$cargo.'</h4>
+                              </div>
+                            </div><!-- End testimonial item -->';
+                    endwhile;
+                endif;
+            ?>
+          </div>
+          <div class="swiper-pagination"></div>
+        </div>
+
+      </div>
+    </section><!-- End Testimonials Section -->
+
+    <!-- ======= Cta Section ======= -->
+    <section id="cta" class="cta">
+      <div class="container">
+
+        <div class="text-center">
+          <h3><?php echo get_field('setima_secao_titulo'); ?></h3>
+          <p> <?php echo get_field('setima_secao_descricao'); ?>.</p>
+          <a class="cta-btn" href="#contact"><?php echo get_field('setima_secao_nome_botao'); ?></a>
+        </div>
+
+      </div>
+    </section><!-- End Cta Section -->
+
+    <!-- ======= Team Section ======= -->
+    <section id="team" class="team section-bg">
+      <div class="container">
+
+        <div class="section-title">
+          <span><?php echo get_field('oitava_secao_titulo'); ?></span>
+          <h2><?php echo get_field('oitava_secao_titulo'); ?></h2>
+          <p><?php echo get_field('oitava_secao_descricao'); ?></p>
+        </div>
+
+        <div class="row">
+            
+        <?php
+            if( have_rows('oitava_secao_socios') ):
+                while( have_rows('oitava_secao_socios') ): the_row();
+                    // Variáveis
+                    $foto = get_sub_field('foto');
+                    $nome = get_sub_field('nome');
+                    $cargo = get_sub_field('cargo');
+                    $responsabilidade = get_sub_field('responsabilidade');
+                    echo'<div class="col-lg-4 col-md-6 d-flex align-items-stretch">
+                            <div class="member">
+                              <img loading=”lazy” src="'.$foto.'" alt="'.$nome.'">
+                              <h4>'.$nome.'</h4>
+                              <span>'.$cargo.'</span>
+                              <p>
+                               '.$responsabilidade.'
+                              </p>
+                              <!-- <div class="social">
+                                <a href=""><i class="bi bi-twitter"></i></a>
+                                <a href=""><i class="bi bi-facebook"></i></a>
+                                <a href=""><i class="bi bi-instagram"></i></a>
+                                <a href=""><i class="bi bi-linkedin"></i></a>
+                              </div> -->
+                            </div>
+                          </div>';
+                endwhile;
+            endif;
+        ?>
+        </div>
+
+      </div>
+    </section><!-- End Team Section -->
+
+    <!-- ======= Contact Section ======= -->
+    <section id="contact" class="contact">
+        <div>
+            <div class="loader"></div>
+        </div>
+      <div class="container">
+         <div class="section-title">
+          <span><?php echo get_field('nona_secao_titulo'); ?></span>
+          <h2><?php echo get_field('nona_secao_titulo'); ?></h2>
+          <p><?php echo get_field('nona_secao_descricao'); ?></p>
+        </div>
+
+        <div class="row">
+
+          <div class="col-lg-5 d-flex align-items-stretch">
+            <div class="info">
+              <div class="address">
+                <?php echo get_field('nona_secao_icone_endereco'); ?>
+                <h4><?php echo get_field('nona_secao_titulo_endereco'); ?></h4>
+                <p><?php echo get_field('nona_secao_descricao_endereco'); ?></p>
+              </div>
+
+              <div class="email">
+               <?php echo get_field('nona_secao_icone_email'); ?>
+                <h4><?php echo get_field('nona_secao_titulo_email'); ?></h4>
+                <p><?php echo get_field('nona_secao_descricao_email'); ?></p>
+              </div>
+
+              <div class="phone">
+                <?php echo get_field('nona_secao_icone_telefone'); ?>
+                <h4><?php echo get_field('nona_secao_titulo_telefone'); ?></h4>
+                <p><?php echo get_field('nona_secao_descricao_telefone'); ?></p>
+              </div>
+
+                <?php echo get_field('nona_secao_iframe_google_maps_artvison'); ?>
+              <!--<iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3659.9804248675578!2d-46.70737558800451!3d-23.46117057878055!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x94cef981310f4c0b%3A0xcb01c9dbac32cbef!2sR.%20Encruzilhada%20do%20Sul%2C%20532%20-%20Jardim%20Paulistano%20(Zona%20Norte)%2C%20S%C3%A3o%20Paulo%20-%20SP%2C%2002816-010%2C%20Brasil!5e0!3m2!1spt-BR!2sie!4v1718314530950!5m2!1spt-BR!2sie" frameborder="0" style="border:0; width: 100%; height: 290px;" allowfullscreen></iframe>-->
+            </div>
+
+          </div>
+          <div class="col-lg-7 mt-5 mt-lg-0 d-flex align-items-stretch">
+            <?php echo do_shortcode( '[contact-form-7 id="2d4bc93" title="New_Contact"]' ); ?>
+          </div>
+
+        </div>
+
+      </div>
+    </section><!-- End Contact Section -->
+
+  </main><!-- End #main -->
+<?php get_footer(); ?>

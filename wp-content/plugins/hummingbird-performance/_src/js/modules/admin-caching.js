@@ -1,4 +1,5 @@
 /* global WPHB_Admin */
+/* global wphbMixPanel */
 
 /**
  * Internal dependencies
@@ -17,7 +18,6 @@ import CacheScanner from '../scanners/CacheScanner';
 				hash = window.location.hash,
 				pageCachingForm = $( 'form[id="page_cache-form"]' ),
 				rssForm = $( 'form[id="rss-form"]' ),
-				gravatarDiv = $( 'div[id="wphb-box-caching-gravatar"]' ),
 				settingsForm = $( 'form[id="settings-form"]' );
 
 			// We assume there's at least one site, but this.scanner.init() will properly set the total sites.
@@ -44,15 +44,22 @@ import CacheScanner from '../scanners/CacheScanner';
 				self.saveSettings( 'page_cache', pageCachingForm );
 			} );
 
-			// Clear page cache.
-			pageCachingForm.on(
-				'click',
-				'.sui-box-header .sui-button',
-				( e ) => {
-					e.preventDefault();
-					self.clearCache( 'page_cache', pageCachingForm );
-				}
-			);
+			// Clear page|gravatar cache.
+			$( '#wphb-clear-cache' ).on( 'click', ( e ) => {
+				e.preventDefault();
+				self.clearCache( e.target );
+			} );
+
+			/**
+			 * Disable FastCGI cache.
+			 *
+			 * @since 3.4.0
+			 */
+			$( '#wphb-disable-fastcgi' ).on( 'click', ( e ) => {
+				e.preventDefault();
+				e.target.classList.add( 'sui-button-onload-text' );
+				Fetcher.caching.disableFastCGI().then( () => window.location.reload() );
+			} );
 
 			/**
 			 * Toggle clear cache settings.
@@ -122,18 +129,6 @@ import CacheScanner from '../scanners/CacheScanner';
 					},
 					'slow'
 				);
-			} );
-
-			/**
-			 * GRAVATAR CACHING
-			 *
-			 * @since 1.9.0
-			 */
-
-			// Clear cache.
-			gravatarDiv.on( 'click', '.sui-box-header .sui-button', ( e ) => {
-				e.preventDefault();
-				self.clearCache( 'gravatar', gravatarDiv );
 			} );
 
 			/**
@@ -216,9 +211,9 @@ import CacheScanner from '../scanners/CacheScanner';
 				objectCache.addEventListener( 'change', ( e ) => {
 					// Track feature enable.
 					if ( e.target.checked ) {
-						WPHB_Admin.Tracking.enableFeature( 'Redis Cache' );
+						wphbMixPanel.enableFeature( 'Redis Cache' );
 					} else {
-						WPHB_Admin.Tracking.disableFeature( 'Redis Cache' );
+						wphbMixPanel.disableFeature( 'Redis Cache' );
 					}
 
 					Fetcher.caching
@@ -342,36 +337,28 @@ import CacheScanner from '../scanners/CacheScanner';
 		 *
 		 * @since 1.9.0
 		 *
-		 * @param {string} module Module for which to clear the cache.
-		 * @param {Object} form   Form from which the call was made.
+		 * @param {Object} target Target button that was clicked.
 		 */
-		clearCache: ( module, form ) => {
-			const button = form.find( '.sui-box-header .sui-button' );
-			button.addClass( 'sui-button-onload-text' );
+		clearCache: ( target ) => {
+			const module = target.dataset.module;
+			target.classList.add( 'sui-button-onload-text' );
 
 			Fetcher.caching.clearCache( module ).then( ( response ) => {
-				if ( 'undefined' !== typeof response && response.success ) {
-					if ( 'page_cache' === module ) {
-						$( '.box-caching-summary span.sui-summary-large' ).html(
-							'0'
-						);
-						WPHB_Admin.notices.show(
-							getString( 'successPageCachePurge' )
-						);
-					} else if ( 'gravatar' === module ) {
-						WPHB_Admin.notices.show(
-							getString( 'successGravatarPurge' )
-						);
-					}
-				} else {
-					WPHB_Admin.notices.show(
-						getString( 'errorCachePurge' ),
-						'error'
-					);
+				if ( 'page_cache' === module && 'undefined' !== typeof response && response.reload ) {
+					window.location.reload();
 				}
 
-				button.removeClass( 'sui-button-onload-text' );
-			} );
+				if ( 'undefined' !== typeof response && response.success ) {
+					if ( 'page_cache' === module ) {
+						$( '.box-caching-summary span.sui-summary-large' ).html( '0' );
+						WPHB_Admin.notices.show( getString( 'successPageCachePurge' ) );
+					} else if ( 'gravatar' === module ) {
+						WPHB_Admin.notices.show( getString( 'successGravatarPurge' ) );
+					}
+				} else {
+					WPHB_Admin.notices.show( getString( 'errorCachePurge' ), 'error' );
+				}
+			} ).finally( () => target.classList.remove( 'sui-button-onload-text' ) );
 		},
 
 		/**

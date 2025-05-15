@@ -199,7 +199,7 @@ export default class StepsContent extends React.Component {
 		];
 
 		return (
-			<Tabs menu={ tabs } tabs={ content } sideTabs="true" />
+			<Tabs menu={tabs} tabs={content} className="sui-side-tabs wphb-file-types-tabs"/>
 		);
 	}
 

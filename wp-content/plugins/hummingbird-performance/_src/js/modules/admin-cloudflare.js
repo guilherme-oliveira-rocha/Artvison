@@ -164,6 +164,7 @@ import { getString } from '../utils/helpers';
 							'next'
 						);
 					} else {
+						window.wphbMixPanel.enableFeature( 'Cloudflare_integration' );
 						// All good, reload page.
 						window.location.reload();
 					}
@@ -241,6 +242,7 @@ import { getString } from '../utils/helpers';
 							response.zones
 						);
 					} else {
+						window.wphbMixPanel.enableFeature( 'Cloudflare_integration' );
 						// All good, reload page.
 						window.location.reload();
 					}
@@ -300,6 +302,10 @@ import { getString } from '../utils/helpers';
 		switchLabel: () => {
 			const token = document.getElementById( 'cf-token-tab' ).checked;
 			const type = token ? 'token' : 'key';
+
+			document.getElementById( 'cloudflare-email' ).value = '';
+			document.getElementById( 'cloudflare-api-key' ).value = '';
+			document.getElementById( 'cloudflare-api-token' ).value = '';
 
 			document.querySelector(
 				'#cloudflare-show-key-help > span:first-of-type'

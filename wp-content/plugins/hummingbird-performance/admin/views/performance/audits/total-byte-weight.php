@@ -21,7 +21,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 </p>
 
 <h4><?php esc_html_e( 'Status', 'wphb' ); ?></h4>
-<?php if ( isset( $audit->errorMessage ) && ! isset( $audit->score ) ) {
+<?php
+if ( isset( $audit->errorMessage ) && ! isset( $audit->score ) ) {
 	$this->admin_notices->show_inline( /* translators: %s - error message */
 		sprintf( esc_html__( 'Error: %s', 'wphb' ), esc_html( $audit->errorMessage ) ),
 		'error'
@@ -106,11 +107,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 				</a>
 			<?php elseif ( $this->is_smush_installed() && ! $this->is_smush_enabled() && is_main_site() ) : ?>
 				<?php
-				if ( $this->is_smush_pro ) {
-					$url = wp_nonce_url( 'plugins.php?action=activate&amp;plugin=wp-smush-pro/wp-smush.php', 'activate-plugin_wp-smush-pro/wp-smush.php' );
-				} else {
-					$url = wp_nonce_url( 'plugins.php?action=activate&amp;plugin=wp-smushit/wp-smush.php', 'activate-plugin_wp-smushit/wp-smush.php' );
-				}
+				$url = $this->smush_activation_url();
 				?>
 				<a href="<?php echo esc_url( $url ); ?>" target="_blank" class="wphb-button-link">
 					<?php esc_html_e( 'Activate Smush', 'wphb' ); ?>
@@ -138,7 +135,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 					'<a href="#" data-modal-open="wphb-upgrade-membership-modal" data-modal-open-focus="upgrade-to-pro-button" data-modal-mask="true">'
 				),
 				'upsell',
-				sprintf( /* translators: %1$s - opening a tag, %2$s - </a> */
+				sprintf( /* translators: %1$s - opening a tag, %2$s - closing a tag */
 					esc_html__( '%1$sLearn More%2$s', 'wphb' ),
 					'<a href="' . esc_html( \Hummingbird\Core\Utils::get_link( 'smush', 'hummingbird_report_smush_upsell_link' ) ) . '" target="_blank" class="sui-button sui-button-purple">',
 					'</a>'

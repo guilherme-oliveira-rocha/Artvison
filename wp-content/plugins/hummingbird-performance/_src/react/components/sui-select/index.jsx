@@ -26,11 +26,7 @@ export default class Select extends React.Component {
 	render() {
 		const selectOptions = this.props.items.map( ( item, id ) => {
 			return (
-				<option
-					value={ item[ 0 ] }
-					selected={ item[ 0 ] === this.props.selected }
-					key={ id }
-				>
+				<option value={ item[ 0 ] } key={ id }>
 					{ item[ 1 ] }
 				</option>
 			);
@@ -52,6 +48,8 @@ export default class Select extends React.Component {
 					{ this.props.label }
 				</label>
 				<select
+					onChange={ this.props.onChange }
+					value={ this.props.selected }
 					className={ classNames( 'sui-select', this.props.classes ) }
 					data-width={ width }
 					name={ this.props.selectId }
@@ -66,6 +64,7 @@ export default class Select extends React.Component {
 					}
 					ref={ ( el ) => ( this.el = el ) }
 				>
+					{ this.props.placeholder && <option /> }
 					{ selectOptions }
 				</select>
 
@@ -85,12 +84,12 @@ export default class Select extends React.Component {
 /**
  * Default props.
  *
- * @param {string} selectId  Select ID. Will be also used as class and htmlFor in the label.
- * @param {string} label     Label text.
- * @param {Array}  items     List of items for the select.
- * @param {string} selected  Selected item.
+ * @param {string}       selectId Select ID. Will be also used as class and htmlFor in the label.
+ * @param {string}       label    Label text.
+ * @param {Array}        items    List of items for the select.
+ * @param {string|Array} selected Selected item.
  *
- * @type {{selectId: string, label: string, items: [], selected: string}}
+ * @type {{selectId: string, multiple: boolean, label: string, items: *[], selected: string}}
  */
 Select.defaultProps = {
 	selectId: '',

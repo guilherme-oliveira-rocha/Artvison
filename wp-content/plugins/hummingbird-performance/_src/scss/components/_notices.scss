@@ -9,7 +9,10 @@
  * Notices based on .sui-box element.
  * @since 2.6.0
  */
-.wpmud .sui-box.wphb-box-notice {
+
+.wpmud .sui-wrap .sui-row-with-sidenav > .sui-box.wphb-box-notice {
+    display: flex;
+    margin-bottom: 30px !important;
     box-shadow: inset 2px 0 0 0 #17A8E3, 0 2px 0 0 #DDDDDD;
 
     @include bp(phone) {

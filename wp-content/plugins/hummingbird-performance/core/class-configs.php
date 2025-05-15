@@ -22,7 +22,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 class Configs {
 
 	/**
-	 * Basic config defaults (that are different from plugin defaults).
+	 * Config defaults (that are different from plugin defaults).
 	 *
 	 * @var array $defaults
 	 */
@@ -44,7 +44,7 @@ class Configs {
 	 * @since 3.0.0
 	 */
 	public function enqueue_react_scripts() {
-		wp_enqueue_script( 'wphb-react-configs', WPHB_DIR_URL . 'admin/assets/js/wphb-react-configs.min.js', array( 'wp-i18n', 'lodash' ), WPHB_VERSION, true );
+		wp_enqueue_script( 'wphb-react-configs', WPHB_DIR_URL . 'admin/assets/js/wphb-react-configs.min.js', array( 'wp-i18n', 'lodash', 'wphb-react-lib' ), WPHB_VERSION, true );
 
 		$api = Utils::get_api();
 		wp_localize_script(
@@ -52,13 +52,14 @@ class Configs {
 			'wphbReact',
 			array(
 				'links'        => array(
-					'accordionImg' => WPHB_DIR_URL . 'admin/assets/image/icon-configs@2x.png',
-					'hubConfigs'   => Utils::get_link( 'configs' ),
-					'hubWelcome'   => Utils::get_link( 'hub-welcome', 'config' ),
-					'configsPage'  => Utils::get_admin_menu_url( 'settings' ) . '&view=configs',
+					'accordionImg'  => WPHB_DIR_URL . 'admin/assets/image/icon-configs@2x.png',
+					'hubConfigs'    => Utils::get_link( 'configs' ),
+					'hubWelcome'    => Utils::get_link( 'hub-welcome', 'config' ),
+					'configsPage'   => Utils::get_admin_menu_url( 'settings' ) . '&view=configs',
+					'freeNoticeHub' => Utils::get_link( 'hub-welcome', 'hummingbird_hub_config' ),
 				),
 				'module'       => array(
-					'isMember'       => Utils::is_member(),
+					'isMember'       => Utils::has_access_to_hub(),
 					'isWhiteLabeled' => apply_filters( 'wpmudev_branding_hide_branding', false ),
 				),
 				'requestsData' => array(
@@ -88,7 +89,7 @@ class Configs {
 	}
 
 	/**
-	 * Adds the basic configuration to the local configs.
+	 * Adds the "Default" configuration to the local configs.
 	 *
 	 * @since 3.0.1
 	 */
@@ -102,7 +103,7 @@ class Configs {
 
 		$basic_config = array(
 			'id'          => 1,
-			'name'        => __( 'Basic config', 'wphb' ),
+			'name'        => __( 'Default config', 'wphb' ),
 			'description' => __( 'Recommended performance config for every site.', 'wphb' ),
 			'default'     => true,
 			'config'      => array(
@@ -212,11 +213,38 @@ class Configs {
 
 		Settings::update_settings( $new_settings );
 
-		// Enable Uptime module.
-		if ( $config['settings']['uptime']['enabled'] && $config['settings']['uptime']['enabled'] !== $settings['uptime']['enabled'] ) {
-			Utils::get_module( 'uptime' )->enable();
-			Utils::get_module( 'uptime' )->get_last_report( 'week', true );
+		// Toggle Uptime module.
+		if ( $config['settings']['uptime']['enabled'] !== $settings['uptime']['enabled'] ) {
+			if ( $config['settings']['uptime']['enabled'] ) {
+				Utils::get_module( 'uptime' )->enable();
+				Utils::get_module( 'uptime' )->get_last_report( 'week', true );
+			} else {
+				Utils::get_module( 'uptime' )->disable();
+			}
 		}
+
+		update_option( 'wphb_run_onboarding', null );
+	}
+
+	/**
+	 * Sanitize config data.
+	 *
+	 * @param array $config  Config.
+	 *
+	 * @return array
+	 */
+	public function sanitize_config( $config ) {
+		if ( isset( $config['name'] ) ) {
+			$name = sanitize_text_field( $config['name'] );
+
+			$config['name'] = empty( $name ) ? __( 'Undefined', 'wphb' ) : $name;
+		}
+
+		if ( isset( $config['description'] ) ) {
+			$config['description'] = sanitize_text_field( $config['description'] );
+		}
+
+		return $config;
 	}
 
 	/**
@@ -233,7 +261,7 @@ class Configs {
 		if ( ! $file ) {
 			throw new Exception( __( 'The configs file is required', 'wphb' ) );
 		} elseif ( ! empty( $file['error'] ) ) {
-			/* translators: error message */
+			/* translators: %s - error message */
 			throw new Exception( sprintf( __( 'Error: %s.', 'wphb' ), $file['error'] ) );
 		} elseif ( 'application/json' !== $file['type'] ) {
 			throw new Exception( __( 'The file must be a JSON.', 'wphb' ) );
@@ -255,12 +283,10 @@ class Configs {
 			throw new Exception( __( 'The uploaded config must have a name and a set of settings. Please make sure the uploaded file is the correct one.', 'wphb' ) );
 		}
 
-		// Sanitize.
-		$configs['config'] = array(
-			'configs' => $configs['config']['configs'],
-			// Let's re-create this to avoid differences between imported settings coming from other versions.
-			'strings' => $this->format_config_to_display( $configs['config']['configs'] ),
-		);
+		$configs = $this->sanitize_config( $configs );
+
+		// Let's re-create this to avoid differences between imported settings coming from other versions.
+		$configs['config']['strings'] = $this->format_config_to_display( $configs['config']['configs'] );
 
 		if ( empty( $configs['config']['configs'] ) ) {
 			throw new Exception( __( 'The provided configs list isn’t correct. Please make sure the uploaded file is the correct one.', 'wphb' ) );
@@ -356,6 +382,11 @@ class Configs {
 		// Redis.
 		if ( isset( $settings['redis'] ) ) {
 			unset( $settings['redis'] );
+		}
+
+		// Database reports.
+		if ( isset( $settings['database'] ) ) {
+			unset( $settings['database'] );
 		}
 
 		return $settings;
@@ -488,7 +519,6 @@ class Configs {
 			'performance'             => array(
 				'subsite_tests' => __( 'Performance tests on subsites', 'wphb' ),
 			),
-
 			'rss'                     => array(
 				'enabled'  => __( 'RSS caching', 'wphb' ),
 				'duration' => __( 'Expiry time', 'wphb' ),

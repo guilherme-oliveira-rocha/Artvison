@@ -371,6 +371,7 @@ class Hub {
 		if ( 'performance' === $module || 'reports' === $module ) {
 			// Randomize the minutes, so we don't spam the API.
 			$email_time    = explode( ':', sanitize_text_field( $params->time ) );
+			/* translators: %02d: Random number */
 			$email_time[1] = sprintf( '%02d', wp_rand( 0, 59 ) );
 
 			$options['reports']['enabled']   = true;
@@ -625,9 +626,9 @@ class Hub {
 	 */
 	private function format_recipients( $recipients, $options, $module ) {
 		if ( 'notifications' === $module || 'reports' === $module ) {
-			$current_recipients = $options[ $module ]['recipients'];
+			$current_recipients = isset( $options[ $module ]['recipients'] ) ? $options[ $module ]['recipients'] : array();
 		} else {
-			$current_recipients = $options['reports']['recipients'];
+			$current_recipients = isset( $options['reports']['recipients'] ) ? $options['reports']['recipients'] : array();
 		}
 
 		$new_recipients = array();

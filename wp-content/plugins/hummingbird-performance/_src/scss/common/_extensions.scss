@@ -3,6 +3,7 @@
   .wphb-filename-extension {
     border-radius: 4px;
     display: block;
+    flex-shrink: 0;
     float: left;
     font-family: $font;
     font-size: 9px;

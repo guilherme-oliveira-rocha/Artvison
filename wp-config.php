@@ -1,4 +1,9 @@
 <?php
+define('DISALLOW_FILE_EDIT', true);
+define('WP_AUTO_UPDATE_CORE', true);
+define('DISALLOW_FILE_MODS', true);
+define('AUTOMATIC_UPDATER_DISABLED', true);
+define('WP_AUTO_UPDATE_CORE', false);
 /**
  * The base configuration for WordPress
  *
@@ -87,6 +92,7 @@ define( 'WP_DEBUG', false );
 
 
 
+define( 'WP_CACHE', true ); // Added by Hummingbird
 /* That's all, stop editing! Happy publishing. */
 
 /** Absolute path to the WordPress directory. */

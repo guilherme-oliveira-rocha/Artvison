@@ -7,12 +7,13 @@ import classNames from 'classnames';
 /**
  * Functional SettingsRow (sui-box-settings-row) component.
  *
- * @param {string} label
- * @param {string} description
- * @param {Object} content
- * @param {string} classes
- * @param {boolean} wide
- * @return {*} SettingsRow component.
+ * @param {Object}  props             Component props.
+ * @param {string}  props.label
+ * @param {string}  props.description
+ * @param {Object}  props.content
+ * @param {string}  props.classes
+ * @param {boolean} props.wide
+ * @return {JSX.Element} SettingsRow component.
  * @class
  */
 export default function SettingsRow( {

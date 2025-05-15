@@ -13,6 +13,7 @@ namespace Hummingbird\Core\Modules;
 
 use Hummingbird\Core\Module;
 use Hummingbird\Core\Settings;
+use Hummingbird\Core\Utils;
 use Hummingbird\Core\Traits\Module as ModuleContract;
 use stdClass;
 
@@ -26,6 +27,22 @@ if ( ! defined( 'ABSPATH' ) ) {
 class Advanced extends Module {
 
 	use ModuleContract;
+
+	/**
+	 * Font awesome domain.
+	 *
+	 * @since 3.8.0
+	 * @var string $font_awesome_domain
+	 */
+	private $font_awesome_domain = 'use.fontawesome.com';
+
+	/**
+	 * Google font domain.
+	 *
+	 * @since 3.8.0
+	 * @var string $google_font_domain
+	 */
+	private $google_font_domain = 'fonts.googleapis.com';
 
 	/**
 	 * Initializes the module. Always executed even if the module is deactivated.
@@ -86,7 +103,7 @@ class Advanced extends Module {
 		}
 
 		// DNS prefetch.
-		add_filter( 'wp_resource_hints', array( $this, 'prefetch_dns' ), 10, 2 );
+		add_filter( 'wp_resource_hints', array( $this, 'prefetch_dns' ), 9, 2 );
 
 		// Preconnect.
 		add_filter( 'wp_resource_hints', array( $this, 'add_preconnect_urls' ), 10, 2 );
@@ -95,6 +112,8 @@ class Advanced extends Module {
 		if ( isset( $options['lazy_load'] ) && $options['lazy_load']['enabled'] ) {
 			add_filter( 'comments_template', array( $this, 'filter_comments_template' ), 100 );
 		}
+
+		add_filter( 'wp_revisions_to_keep', array( $this, 'set_revisions_to_keep' ), 10, 2 );
 	}
 
 	/**
@@ -167,6 +186,14 @@ class Advanced extends Module {
 			return $hints;
 		}
 
+		if ( ! in_array( $this->font_awesome_domain, $hints, true ) ) {
+			$this->font_awesome_domain = false;
+		}
+
+		if ( ! in_array( $this->google_font_domain, $hints, true ) ) {
+			$this->google_font_domain = false;
+		}
+
 		$urls = Settings::get_setting( 'prefetch', 'advanced' );
 
 		// If not urls set, return default WP hints array.
@@ -220,6 +247,25 @@ class Advanced extends Module {
 		}
 
 		$urls = Settings::get_setting( 'preconnect', 'advanced' );
+		if ( ! is_array( $urls ) ) {
+			$url = array();
+		}
+
+		if ( Utils::get_module( 'minify' )->get_cdn_status() && ! in_array( '//hb.wpmucdn.com', $urls, true ) ) {
+			$urls[] = '//hb.wpmucdn.com';
+		}
+
+		if ( $this->font_awesome_domain && ! in_array( '//' . $this->font_awesome_domain, $urls, true ) ) {
+			$urls[] = $this->font_awesome_domain . ' crossorigin';
+		}
+
+		if ( $this->google_font_domain && ! in_array( '//' . $this->google_font_domain, $urls, true ) ) {
+			$urls[] = $this->google_font_domain;
+
+			if ( ! in_array( '//fonts.gstatic.com', $urls, true ) ) {
+				$urls[] = '//fonts.gstatic.com crossorigin';
+			}
+		}
 
 		// If not urls set, return default WP hints array.
 		if ( ! is_array( $urls ) || empty( $urls ) ) {
@@ -418,7 +464,7 @@ class Advanced extends Module {
 	 * @since 1.8
 	 *
 	 * @access private
-	 * @param  string $sql   SQL query to fetch items.
+	 * @param  string $sql   SQL-query to fetch items.
 	 * @param  string $type  Type of item to fetch.
 	 *
 	 * @return int
@@ -427,7 +473,7 @@ class Advanced extends Module {
 		global $wpdb;
 
 		wp_cache_flush();
-		$entries = $wpdb->get_col( $sql ); // Db call ok; no-cache oka.
+		$entries = $wpdb->get_col( $sql ); // Db call ok; no-cache okay.
 
 		if ( 'revisions' === $type || 'drafts' === $type || 'trash' === $type ) {
 			$func = 'wp_delete_post';
@@ -620,7 +666,8 @@ class Advanced extends Module {
 				$extra_info['Connection info'] = $dbh->host_info;
 			}
 		} else {
-			$version = $driver = __( 'Unknown', 'wphb' );
+			$version = __( 'Unknown', 'wphb' );
+			$driver  = __( 'Unknown', 'wphb' );
 		}
 		$extra_info['Database']     = $wpdb->dbname;
 		$extra_info['Charset']      = $wpdb->charset;
@@ -845,6 +892,7 @@ class Advanced extends Module {
 	 * @since 2.5.0
 	 */
 	public function enqueue_global() {
+		global $post;
 		$lazy_load_comment_js = is_singular();
 		$lazy_load_comment_js = apply_filters( 'wphb_lazy_load_comment_js', $lazy_load_comment_js );
 		// Do not load sitewide.
@@ -860,13 +908,86 @@ class Advanced extends Module {
 			true
 		);
 
+		$separate_comments = get_transient( 'wphb-separate-comments' );
+		$comment_form      = '';
+		$preload_comment   = false;
+
+		$preload = Settings::get_settings( 'advanced' );
+
+		if ( isset( $preload['lazy_load']['preload'] ) && $preload['lazy_load']['preload'] ) {
+			$cpage_num       = $this->wphb_get_cpage_num();
+			$preload_comment = true;
+
+			if ( class_exists( 'woocommerce' ) ) {
+				global $product;
+				$product = wc_get_product( $post->ID );
+			}
+
+			remove_filter( 'comments_template', array( $this, 'filter_comments_template' ), 100 );
+
+			if ( ! empty( $cpage_num ) ) {
+				set_query_var( 'cpage', $cpage_num );
+
+				// Adding filters.
+				add_filter( 'option_page_comments', array( $this, 'filter_option_page_comments' ), 100 );
+				add_filter( 'comments_template', array( $this, 'reset_wp_query_max_num_comment_pages' ), 1 );
+				add_filter( 'option_comment_order', array( $this, 'filter_option_comment_order' ), 100 );
+			}
+
+			ob_start();
+			comments_template( '', $separate_comments );
+			$comment_form = ob_get_contents();
+			ob_end_clean();
+
+			add_filter( 'comments_template', array( $this, 'filter_comments_template' ), 100 );
+			remove_filter( 'comments_template', array( $this, 'reset_wp_query_max_num_comment_pages' ), 1 );
+		}
+
 		wp_localize_script(
 			'wphb-lazy-load',
 			'wphbGlobal',
 			array(
-				'ajaxurl' => admin_url( 'admin-ajax.php' ),
+				'ajaxurl'        => admin_url( 'admin-ajax.php' ),
+				'commentForm'    => $comment_form,
+				'preloadComment' => $preload_comment,
 			)
 		);
+	}
+
+	/**
+	 * Returns total comment pages.
+	 *
+	 * @return int Total comment pages.
+	 */
+	public function wphb_get_cpage_num() {
+		global $post;
+		$cpage_num = get_query_var( 'cpage' );
+
+		if ( ! $cpage_num ) {
+			$cpage_num = 1;
+		}
+
+		remove_filter( 'option_page_comments', '__return_true', 100 );
+		$page_comments = (int) get_option( 'page_comments' );
+
+		if ( 0 === $page_comments ) {
+			add_filter( 'option_page_comments', '__return_true', 10 );
+		}
+
+		$get_comments_object = get_approved_comments( $post->ID );
+		$total_comment_pages = get_comment_pages_count( $get_comments_object );
+
+		if ( 0 === $page_comments ) {
+			remove_filter( 'option_page_comments', '__return_true', 10 );
+		}
+
+		$comments_page_order = get_option( 'default_comments_page' ); // Possible values : newest, oldest.
+
+		if ( 'newest' === $comments_page_order && 1 === $cpage_num ) {
+			$cpage_num = $total_comment_pages;
+		}
+
+		return $cpage_num;
 	}
 
 	/**
@@ -999,7 +1120,12 @@ class Advanced extends Module {
 		 */
 		do_action( 'wphb_ajax_get_comments_template' );
 
-		query_posts( array( 'p' => absint( $_GET['id'] ) ) );
+		query_posts(
+			array(
+				'p'         => absint( $_GET['id'] ),
+				'post_type' => 'any',
+			)
+		);
 
 		/* Restore original Post Data */
 		wp_reset_postdata();
@@ -1123,4 +1249,19 @@ class Advanced extends Module {
 		return ( 'newest' === $dcp ) ? 'desc' : 'asc';
 	}
 
+	/**
+	 * Set the post revisions.
+	 *
+	 * @param int     $num  Number of revisions to store.
+	 * @param WP_Post $post Post object.
+	 * @return int
+	 **/
+	public function set_revisions_to_keep( $num, $post ) {
+		$options = Settings::get_settings( 'advanced' );
+		if ( isset( $options['post_revisions'] ) && $options['post_revisions'] >= 0 ) {
+			return (int) $options['post_revisions'];
+		}
+
+		return $num;
+	}
 }

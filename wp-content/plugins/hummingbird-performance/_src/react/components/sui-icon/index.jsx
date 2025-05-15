@@ -6,7 +6,7 @@ import React from 'react';
 /**
  * Icon component.
  *
- * @param {string} classes  List of classes
+ * @param {string} classes List of classes
  * @return {*} Icon component.
  * @class
  */

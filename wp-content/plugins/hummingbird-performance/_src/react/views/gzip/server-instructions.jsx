@@ -19,6 +19,7 @@ import SupportLink from '../../components/support-link';
 import CodeSnippet from '../../components/sui-code-snippet';
 import OrderedList from '../../components/ordered-list';
 import Tabs from '../../components/sui-tabs';
+import {createInterpolateElement} from "@wordpress/element";
 
 /**
  * Server instructions component.
@@ -92,20 +93,14 @@ export default class ServerInstructions extends React.Component {
 			/>
 		);
 
-		const noticeText = (
-			<p>
-				{ __(
-					'We tried applying the .htaccess rules automatically but we weren’t able to. Make sure your file permissions on your .htaccess file are set to 644, or',
-					'wphb'
-				) }
-				<Button
-					url="#apache-config-manual"
-					classes={ [ 'switch-manual' ] }
-					text={ __( 'switch to manual mode', 'wphb' ) }
-				/>
-				{ __( 'and apply the rules yourself.', 'wphb' ) }
-			</p>
-		);
+		const noticeText = createInterpolateElement(__('<p>We tried applying the .htaccess rules automatically but we weren’t able to. Make sure your file permissions on your .htaccess file are set to 644, or <button/> and apply the rules yourself.</p>', 'wphb'), {
+			p: <p/>,
+			button: <Button
+				url="#apache-config-manual"
+				classes={['switch-manual']}
+				text={__('switch to manual mode', 'wphb')}
+			/>
+		});
 
 		return (
 			<div id="enable-cache-wrap" className={ classNames }>

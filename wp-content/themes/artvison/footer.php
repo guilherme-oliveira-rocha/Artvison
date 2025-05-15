@@ -1,61 +1,63 @@
-<?php
-/**
- * The template for displaying the footer
- *
- * Contains the opening of the #site-footer div and all content after.
- *
- * @link https://developer.wordpress.org/themes/basics/template-files/#template-partials
- *
- * @package WordPress
- * @subpackage Twenty_Twenty
- * @since Twenty Twenty 1.0
- */
+ <!-- ======= Footer ======= -->
+  <footer id="footer">
 
-?>
-			<footer id="site-footer" role="contentinfo" class="header-footer-group">
+    <!-- <div class="footer-top">
 
-				<div class="section-inner">
+      <div class="container">
 
-					<div class="footer-credits">
+        <div class="row  justify-content-center">
+          <div class="col-lg-6">
+            <h3>eNno</h3>
+            <p>Et aut eum quis fuga eos sunt ipsa nihil. Labore corporis magni eligendi fuga maxime saepe commodi placeat.</p>
+          </div>
+        </div>
 
-						<p class="footer-copyright">&copy;
-							<?php
-							echo date_i18n(
-								/* translators: Copyright date format, see https://www.php.net/manual/datetime.format.php */
-								_x( 'Y', 'copyright date format', 'twentytwenty' )
-							);
-							?>
-							<a href="<?php echo esc_url( home_url( '/' ) ); ?>"><?php bloginfo( 'name' ); ?></a>
-						</p><!-- .footer-copyright -->
+        <div class="row footer-newsletter justify-content-center">
+          <div class="col-lg-6">
+            <form action="" method="post">
+              <input type="email" name="email" placeholder="Enter your Email"><input type="submit" value="Subscribe">
+            </form>
+          </div>
+        </div>
 
-						<p class="powered-by-wordpress">
-							<a href="<?php echo esc_url( __( 'https://wordpress.org/', 'twentytwenty' ) ); ?>">
-								<?php _e( 'Powered by WordPress', 'twentytwenty' ); ?>
-							</a>
-						</p><!-- .powered-by-wordpress -->
+        <div class="social-links">
+          <a href="#" class="twitter"><i class="bx bxl-twitter"></i></a>
+          <a href="#" class="facebook"><i class="bx bxl-facebook"></i></a>
+          <a href="#" class="instagram"><i class="bx bxl-instagram"></i></a>
+          <a href="#" class="google-plus"><i class="bx bxl-skype"></i></a>
+          <a href="#" class="linkedin"><i class="bx bxl-linkedin"></i></a>
+        </div>
 
-					</div><!-- .footer-credits -->
+      </div>
+    </div> -->
 
-					<a class="to-the-top" href="#site-header">
-						<span class="to-the-top-long">
-							<?php
-							/* translators: %s: HTML character for up arrow. */
-							printf( __( 'To the top %s', 'twentytwenty' ), '<span class="arrow" aria-hidden="true">&uarr;</span>' );
-							?>
-						</span><!-- .to-the-top-long -->
-						<span class="to-the-top-short">
-							<?php
-							/* translators: %s: HTML character for up arrow. */
-							printf( __( 'Up %s', 'twentytwenty' ), '<span class="arrow" aria-hidden="true">&uarr;</span>' );
-							?>
-						</span><!-- .to-the-top-short -->
-					</a><!-- .to-the-top -->
+    <div class="container footer-bottom clearfix">
+      <div class="copyright">
+        &copy; Copyright <strong><span>Artvison - Divisórias e Forros</span></strong>. Todos os Direitos Reservados
+      </div>
+      <div class="credits">
+        <!-- All the links in the footer should remain intact. -->
+        <!-- You can delete the links only if you purchased the pro version. -->
+        <!-- Licensing information: https://bootstrapmade.com/license/ -->
+        <!-- Purchase the pro version with working PHP/AJAX contact form: https://bootstrapmade.com/enno-free-simple-bootstrap-template/ -->
+        Criado por <a target="_blank" href="https://www.linkedin.com/in/guilhermeoliveirarocha/" style="color: #14c871;text-decoration: none;">Guilherme Rocha</a>
+      </div>
+    </div>
+  </footer><!-- End Footer -->
 
-				</div><!-- .section-inner -->
+  <a href="https://wa.me/551139934241" target="_blank" class="back-to-top active d-flex align-items-center justify-content-center"><i class="bi bi-whatsapp"></i></a>
 
-			</footer><!-- #site-footer -->
+  <!-- Vendor JS Files -->
+  <script src="https://www.artvison.com.br/wp-content/themes/artvison/assets/vendor/swiper/swiper-bundle.min.js'"></script>
+  <script src="https://www.artvison.com.br/wp-content/themes/artvison/assets/vendor/purecounter/purecounter_vanilla.js"></script>
+  <script src="https://www.artvison.com.br/wp-content/themes/artvison/assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+  <script src="https://www.artvison.com.br/wp-content/themes/artvison/assets/vendor/glightbox/js/glightbox.min.js"></script>
+  <script src="https://www.artvison.com.br/wp-content/themes/artvison/assets/vendor/isotope-layout/isotope.pkgd.min.js"></script>
+  <script src="https://www.artvison.com.br/wp-content/themes/artvison/assets/vendor/php-email-form/validate.js"></script>
 
-		<?php wp_footer(); ?>
+  <!-- Template Main JS File -->
+  <script src="https://www.artvison.com.br/wp-content/themes/artvison/assets/js/main.js"></script>
 
-	</body>
+</body>
+
 </html>

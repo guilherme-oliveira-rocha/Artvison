@@ -8,6 +8,7 @@
  * @var bool   $query_strings_global  Is URL Query Strings a global option.
  * @var bool   $cart_fragments        WooCommerce cart fragments.
  * @var bool   $emoji                 Remove Emojis file enabled or disabled.
+ * @var string $post_revisions        Post revision.
  * @var bool   $emoji_global          Is Emoji clearing a global option.
  * @var string $prefetch              Prefetch DNS URLs.
  * @var string $preconnect            Preconnect URLs.
@@ -109,7 +110,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 				</div>
 				<?php
 				$this->admin_notices->show_inline(
-					sprintf( /* translators: %1$s - <a> link, %2$s - </a> closing tag */
+					sprintf( /* translators: %1$s - opening a tag, %2$s - closing a tag */
 						esc_html__( 'After disabling cart fragments, be sure to enable the %1$sRedirect to the cart page after successful addition%2$s option in your Woocommerce Settings to redirect your customers to the main cart page instead of waiting for an item to be added to the cart.', 'wphb' ),
 						'<a href="' . esc_url( $woo_link ) . '" target="_blank">',
 						'</a>'
@@ -174,6 +175,23 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 <div class="sui-box-settings-row">
 	<div class="sui-box-settings-col-1">
+		<span class="sui-settings-label"><?php esc_html_e( 'Post Revisions', 'wphb' ); ?></span>
+		<span class="sui-description">
+			<?php esc_html_e( 'WordPress post revisions track and save every content edit, allowing for easy comparison, restoration, and collaboration by storing each change.', 'wphb' ); ?>
+		</span>
+	</div>
+	<div class="sui-box-settings-col-2">
+		<div class="sui-form-field">
+			<input type="text" placeholder="Example: 5 (Default value)" name="post_revisions" id="post_revisions" class="sui-form-control" aria-labelledby="post_revisions-label" value="<?php echo esc_attr( $post_revisions ); ?>">
+			<span id="post_revisions-id" class="sui-description">
+				<?php esc_html_e( 'Limit revisions to any number by entering it here, or disable revisions by entering "0".', 'wphb' ); ?>
+			</span>
+		</div>
+	</div>
+</div>
+
+<div class="sui-box-settings-row">
+	<div class="sui-box-settings-col-1">
 		<span class="sui-settings-label"><?php esc_html_e( 'Prefetch DNS Requests', 'wphb' ); ?></span>
 		<span class="sui-description">
 			<?php esc_html_e( 'Speeds up web pages by pre-resolving DNS. In essence it tells a browser it should resolve the DNS of a specific domain prior to it being explicitly called – very useful if you use third party services.', 'wphb' ); ?>
@@ -227,7 +245,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 			><?php echo esc_html( $preconnect ); ?></textarea>
 			<span id="preconnect_strings-id" class="sui-description">
 				<?php
-				printf( /* translators: %1$s - opening <a>, %2$s - closing </a> */
+				printf( /* translators: %1$s - opening <a> tag, %2$s - closing </a> tag */
 					esc_html__( 'Add hosts one per line, with no http or https. We’ve added a few common domains as an example. Note that Preconnect requests are made without the crossorigin attribute by default. If you’d like to add the crossorigin attribute, please see our %1$sdocumentation%2$s first.', 'wphb' ),
 					'<a href="' . esc_url( \Hummingbird\Core\Utils::get_documentation_url( 'wphb-advanced' ) ) . '" target="_blank">',
 					'</a>'

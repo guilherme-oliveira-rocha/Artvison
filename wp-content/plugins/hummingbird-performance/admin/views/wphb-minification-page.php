@@ -3,21 +3,26 @@
  * Asset optimization page.
  *
  * @package Hummingbird
+ *
+ * @var Page $this
  */
+
+use Hummingbird\Admin\Page;
+use Hummingbird\Core\Utils;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
 if ( is_multisite() && is_network_admin() ) {
-	$this->do_meta_boxes( 'main' );
+	$this->do_meta_boxes();
 }
 
 if ( $this->has_meta_boxes( 'box-enqueued-files-empty' ) ) {
 	$this->do_meta_boxes( 'box-enqueued-files-empty' );
 }
 
-$this->do_meta_boxes( 'summary' );
+$this->do_react_meta_boxes( 'summary' );
 ?>
 
 <?php if ( ! $this->has_meta_boxes( 'box-enqueued-files-empty' ) && ! is_network_admin() ) : ?>
@@ -25,14 +30,8 @@ $this->do_meta_boxes( 'summary' );
 		<?php $this->show_tabs(); ?>
 
 		<?php if ( 'files' === $this->get_current_tab() ) : ?>
-			<form id="wphb-minification-form" method="post">
-				<?php do_action( 'wphb_asset_optimization_http2_notice' ); ?>
-				<?php $this->do_meta_boxes( 'main' ); ?>
-			</form>
-			<?php if ( 'basic' === $this->mode ) : ?>
-				<br>
-				<div id="wrap-wphb-auto-minify"></div>
-			<?php endif; ?>
+			<?php do_action( 'wphb_asset_optimization_notice' ); ?>
+			<?php $this->do_react_meta_boxes( 'minify' ); ?>
 		<?php endif; ?>
 
 		<?php if ( 'tools' === $this->get_current_tab() ) : ?>
@@ -69,7 +68,7 @@ if ( 'advanced' === $this->mode ) {
 
 $this->modal( 'found-assets' );
 
-if ( ! \Hummingbird\Core\Utils::is_member() ) {
+if ( ! Utils::is_member() ) {
 	$this->modal( 'membership' );
 }
 

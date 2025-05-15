@@ -92,11 +92,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 			</a>
 		<?php elseif ( $this->is_smush_installed() && ! $this->is_smush_enabled() && is_main_site() ) : ?>
 			<?php
-			if ( $this->is_smush_pro ) {
-				$url = wp_nonce_url( 'plugins.php?action=activate&amp;plugin=wp-smush-pro/wp-smush.php', 'activate-plugin_wp-smush-pro/wp-smush.php' );
-			} else {
-				$url = wp_nonce_url( 'plugins.php?action=activate&amp;plugin=wp-smushit/wp-smush.php', 'activate-plugin_wp-smushit/wp-smush.php' );
-			}
+			$url = $this->smush_activation_url();
 			?>
 			<a href="<?php echo esc_url( $url ); ?>" target="_blank" class="sui-button">
 				<?php esc_html_e( 'Activate Smush', 'wphb' ); ?>

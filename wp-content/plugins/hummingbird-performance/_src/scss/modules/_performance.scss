@@ -163,7 +163,7 @@
         .wphb-border-frame .table-header { background-color: #FAFAFA; }
 
         #first_contentful_paint,
-        #first_input_delay {
+        #interaction_to_next_paint {
             svg g path {
                 stroke: transparent;
             }
@@ -332,4 +332,8 @@
     #duplicated-javascript .sui-accordion-item-body .sui-box-body table th:last-of-type { width: 130px; }
 
     .sui-accordion .sui-accordion-item-header .sui-accordion-open-indicator { margin-left: 30px !important; }
+}
+
+.wpmud .wrap-wphb-performance.sui-wrap.sui-color-accessible .sui-side-tabs > [data-tabs] > *.active {
+    color: #FFFFFF !important;
 }

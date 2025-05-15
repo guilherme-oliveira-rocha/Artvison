@@ -8,6 +8,7 @@
 namespace Hummingbird\Core\Api;
 
 use Hummingbird\Core\Configs;
+use Hummingbird\Core\Modules\Minify;
 use Hummingbird\Core\Utils;
 use WP_Error;
 use WP_REST_Request;
@@ -110,12 +111,42 @@ class Rest {
 				array(
 					'methods'             => WP_REST_Server::READABLE,
 					'callback'            => array( $this, 'get_configs' ),
-					'permission_callback' => array( $this, 'check_configs_permissions' ),
+					'permission_callback' => array( $this, 'check_manage_options_permissions' ),
 				),
 				array(
 					'methods'             => WP_REST_Server::CREATABLE,
 					'callback'            => array( $this, 'set_configs' ),
-					'permission_callback' => array( $this, 'check_configs_permissions' ),
+					'permission_callback' => array( $this, 'check_manage_options_permissions' ),
+				),
+			)
+		);
+
+		// Asset optimization - options.
+		register_rest_route(
+			$this->get_namespace(),
+			'/minify/options',
+			array(
+				'methods'             => WP_REST_Server::READABLE,
+				'callback'            => array( $this, 'get_minify_settings' ),
+				'permission_callback' => array( $this, 'check_manage_options_permissions' ),
+				'module'              => array(
+					'required'          => true,
+					'sanitize_callback' => 'sanitize_key',
+				),
+			)
+		);
+
+		// Asset optimization - assets.
+		register_rest_route(
+			$this->get_namespace(),
+			'/minify/assets',
+			array(
+				'methods'             => WP_REST_Server::READABLE,
+				'callback'            => array( $this, 'get_minify_assets' ),
+				'permission_callback' => array( $this, 'check_manage_options_permissions' ),
+				'module'              => array(
+					'required'          => true,
+					'sanitize_callback' => 'sanitize_key',
 				),
 			)
 		);
@@ -128,8 +159,9 @@ class Rest {
 	 *
 	 * @return bool
 	 */
-	public function check_configs_permissions() {
-		$capability = is_multisite() && is_network_admin() ? 'manage_network' : 'manage_options';
+	public function check_manage_options_permissions() {
+		$capability = is_multisite() && ( is_network_admin() || Utils::is_referrer_network_admin() ) ? 'manage_network' : 'manage_options';
+
 		return current_user_can( $capability );
 	}
 
@@ -268,7 +300,7 @@ class Rest {
 	 *
 	 * @param WP_REST_Request $request Class containing the request data.
 	 *
-	 * @return array|mixed|WP_Error
+	 * @return array|WP_Error
 	 */
 	public function set_configs( $request ) {
 		$data = json_decode( $request->get_body(), true );
@@ -277,10 +309,67 @@ class Rest {
 			return new WP_Error( '400', esc_html__( 'Missing configs data', 'wphb' ), array( 'status' => 400 ) );
 		}
 
+		foreach ( $data as $key => $value ) {
+			if ( isset( $value['name'] ) ) {
+				$name = sanitize_text_field( $value['name'] );
+
+				$data[ $key ]['name'] = empty( $name ) ? __( 'Undefined', 'wphb' ) : $name;
+			}
+
+			if ( isset( $value['description'] ) ) {
+				$data[ $key ]['description'] = sanitize_text_field( $value['description'] );
+			}
+		}
+
 		// We might want to sanitize before this.
 		update_site_option( 'wphb-preset_configs', $data );
 
 		return $data;
+	}
+
+	/**
+	 * Get asset optimization settings.
+	 *
+	 * @sicne 3.4.0
+	 *
+	 * @return WP_REST_Response
+	 */
+	public function get_minify_settings() {
+		$minify_module  = Utils::get_module( 'minify' );
+		$options        = $minify_module->get_options();
+		$ao_queue_count = Utils::is_ao_status_bar_enabled() ? count( $minify_module->get_pending_persistent_queue() ) : 0;
+		$ao_queue       = array(
+			'aoQueueCount'    => $ao_queue_count,
+			'aoCompletedTime' => Utils::is_ao_status_bar_enabled() ? $options['ao_completed_time'] : '',
+		);
+
+		if ( $ao_queue_count ) {
+			$minify_module->process_queue();
+		}
+
+		$response = array(
+			'cdn'          => $options['use_cdn'],
+			'modal'        => (bool) get_option( 'wphb-minification-show-advanced_modal' ),
+			'mode'         => $options['view'],
+			'safeMode'     => Minify::get_safe_mode_status(),
+			'delay_js'     => $options['delay_js'],
+			'critical_css' => $options['critical_css'],
+			'ao_queue'     => $ao_queue,
+		);
+
+		return rest_ensure_response( $response );
+	}
+
+	/**
+	 * Get asset optimization files.
+	 *
+	 * @sicne 3.4.0
+	 *
+	 * @return WP_REST_Response
+	 */
+	public function get_minify_assets() {
+		$response = Utils::get_module( 'minify' )->get_processed_collection();
+		return rest_ensure_response( $response );
 	}
 
 }

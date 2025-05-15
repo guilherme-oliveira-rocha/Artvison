@@ -29,8 +29,11 @@ class Installer {
 
 		update_site_option( 'wphb_version', WPHB_VERSION );
 		update_site_option( 'wphb-notice-uptime-info-show', 'yes' ); // Add uptime notice.
-		update_site_option( 'wphb_run_onboarding', true );
-		update_site_option( 'wphb-show-black-friday', true );
+
+		// From get_site_option() docs, false = if Option not exists.
+		if ( false === get_site_option( 'wphb_run_onboarding' ) ) {
+			update_site_option( 'wphb_run_onboarding', true );
+		}
 	}
 
 	/**
@@ -38,7 +41,11 @@ class Installer {
 	 */
 	public static function activate_blog() {
 		update_option( 'wphb_version', WPHB_VERSION );
-		update_option( 'wphb_run_onboarding', true );
+
+		if ( false === get_option( 'wphb_run_onboarding' ) ) {
+			update_option( 'wphb_run_onboarding', true );
+		}
+
 		do_action( 'wphb_activate' );
 	}
 
@@ -51,6 +58,10 @@ class Installer {
 			return;
 		}
 
+		if ( ! empty( get_site_option( 'wphb_run_onboarding' ) ) ) {
+			update_site_option( 'wphb_run_onboarding', null );
+		}
+
 		$settings = Settings::get_settings( 'settings' );
 		WP_Hummingbird::flush_cache( $settings['remove_data'], $settings['remove_settings'] );
 
@@ -60,8 +71,9 @@ class Installer {
 
 		if ( $settings['remove_settings'] ) {
 			// Completely remove hummingbird-asset folder.
-			Filesystem::instance()->purge( '', true );
+			Filesystem::instance()->purge_ao_cache();
 		}
+
 		do_action( 'wphb_deactivate' );
 	}
 
@@ -156,12 +168,36 @@ class Installer {
 				self::upgrade_3_1_0();
 			}
 
-			if ( version_compare( $version, '3.1.3', '<' ) ) {
-				update_site_option( 'wphb-show-black-friday', true );
-			}
-
 			if ( version_compare( $version, '3.2.0', '<' ) ) {
 				self::upgrade_3_2_0();
+			}
+
+			if ( version_compare( $version, '3.3.0', '<' ) ) {
+				delete_site_option( 'wp-smush-show-black-friday' );
+			}
+
+			if ( version_compare( $version, '3.3.4', '<' ) ) {
+				self::upgrade_3_3_4();
+			}
+
+			if ( version_compare( $version, '3.4.0', '<' ) ) {
+				self::upgrade_3_4_0();
+			}
+
+			if ( version_compare( $version, '3.5.0', '<' ) ) {
+				self::upgrade_3_5_0();
+			}
+
+			if ( version_compare( $version, '3.6.0', '<' ) ) {
+				self::upgrade_3_6_0();
+			}
+
+			if ( version_compare( $version, '3.7.3', '<' ) ) {
+				self::upgrade_3_7_3();
+			}
+
+			if ( version_compare( $version, '3.8.0', '<' ) ) {
+				self::upgrade_3_8_0();
 			}
 
 			update_site_option( 'wphb_version', WPHB_VERSION );
@@ -553,5 +589,107 @@ class Installer {
 		}
 
 		Settings::update_settings( $settings );
+	}
+
+	/**
+	 * Upgrade to 3.3.4 version.
+	 *
+	 * @since 3.3.4
+	 *
+	 * @return void
+	 */
+	private static function upgrade_3_3_4() {
+		// Rename the default config.
+		$stored_configs = get_site_option( 'wphb-preset_configs', false );
+		if ( is_array( $stored_configs ) && isset( $stored_configs[0] ) ) {
+			if ( isset( $stored_configs[0]['name'] ) && 'Basic config' === $stored_configs[0]['name'] ) {
+				$stored_configs[0]['name'] = __( 'Default config', 'wphb' );
+				update_site_option( 'wphb-preset_configs', $stored_configs );
+			}
+		}
+	}
+
+	/**
+	 * Handle asset optimization settings update.
+	 *
+	 * @since 3.4.0
+	 *
+	 * @return void
+	 */
+	private static function upgrade_3_4_0() {
+		// Summary upgrade modal.
+		add_site_option( 'wphb_show_upgrade_summary', true );
+
+		$position = Settings::get_setting( 'position', 'minify' );
+
+		$updated = false;
+		foreach ( $position as $type => $assets ) {
+			if ( empty( $assets ) ) {
+				continue;
+			}
+
+			$keys = array_keys( $assets );
+			if ( ! is_string( $keys[0] ) ) {
+				continue;
+			}
+
+			$updated = true;
+
+			$position[ $type ] = $keys;
+		}
+
+		if ( $updated ) {
+			Settings::update_setting( 'position', $position, 'minify' );
+		}
+	}
+
+	/**
+	 * Handle Summary upgrade modal display.
+	 *
+	 * @since 3.5.0
+	 *
+	 * @return void
+	 */
+	private static function upgrade_3_5_0() {
+		// Summary upgrade modal.
+		add_site_option( 'wphb_show_upgrade_summary', true );
+	}
+
+	/**
+	 * Handle Summary upgrade modal display for critical css.
+	 *
+	 * @since 3.6.0
+	 *
+	 * @return void
+	 */
+	private static function upgrade_3_6_0() {
+		// Summary upgrade modal.
+		add_site_option( 'wphb_show_upgrade_summary', true );
+	}
+
+	/**
+	 * Handle Summary upgrade modal display for INP.
+	 *
+	 * @since 3.7.3
+	 *
+	 * @return void
+	 */
+	private static function upgrade_3_7_3() {
+		// Summary upgrade modal.
+		add_site_option( 'wphb_show_upgrade_summary', true );
+	}
+
+	/**
+	 * Handle Summary upgrade modal display for font optimization.
+	 *
+	 * @since 3.8.0
+	 *
+	 * @return void
+	 */
+	private static function upgrade_3_8_0() {
+		update_site_option( 'wphb-notice-redis-deprecation-show', 'yes' );
+
+		// Summary upgrade modal.
+		add_site_option( 'wphb_show_upgrade_summary', true );
 	}
 }

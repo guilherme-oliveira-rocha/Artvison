@@ -2,7 +2,6 @@
 /* global SUI */
 
 import Fetcher from '../utils/fetcher';
-import { getString } from '../utils/helpers';
 
 ( function( $ ) {
 	WPHB_Admin.dashboard = {
@@ -25,6 +24,38 @@ import { getString } from '../utils/helpers';
 					this.clearCache
 				);
 			}
+
+			// Delay JS checkbox update status.
+			const dashboardDelay = $( '#view_delay_dashboard' );
+			dashboardDelay.on( 'change', function() {
+				// Update Delay JS status.
+				const delayValue = $( this ).is( ':checked' );
+				Fetcher.minification.toggleDelayJs( delayValue ).then( ( response ) => {
+					window.wphbMixPanel.trackDelayJSEvent( {
+						'update_type': (response.delay_js) ? 'activate' : 'deactivate',
+						'Location': 'dash_widget',
+						'Timeout': response.delay_js_timeout,
+						'Excluded Files': (response.delay_js_exclude) ? 'yes' : 'no',
+					} );
+					
+					WPHB_Admin.notices.show();
+				} );
+			} );
+
+			// Critical CSS checkbox update status.
+			const dashboardCritical = $( '#critical_css_toggle' );
+			dashboardCritical.on( 'change', function() {
+				// Update Critical CSS status.
+				const criticalValue = $( this ).is( ':checked' );
+				Fetcher.minification.toggleCriticalCss( criticalValue ).then( ( response ) => {
+					window.wphbMixPanel.trackCriticalCSSEvent( response.criticalCss, 'dash_widget', response.mode, '', '' );
+					if ( criticalValue && wphb.links.eoUrl ) {
+						window.location.href = wphb.links.eoUrl;
+					} else {
+						WPHB_Admin.notices.show();
+					}
+				} );
+			} );
 
 			return this;
 		},
@@ -58,45 +89,19 @@ import { getString } from '../utils/helpers';
 		},
 
 		/**
-		 * Skip quick setup.
+		 * Hide upgrade summary modal.
 		 *
-		 * @param {boolean} reload Reload the page after skipping setup.
+		 * @param {Object} element Target button that was clicked.
 		 */
-		skipSetup( reload = true ) {
-			Fetcher.common.call( 'wphb_dash_skip_setup' ).then( () => {
-				if ( reload ) {
-					window.location.reload();
+		 hideUpgradeSummary: ( element ) => {
+			window.SUI.closeModal();
+			Fetcher.common.call( 'wphb_hide_upgrade_summary' ).then( () => {
+				if ( element.hasAttribute( 'href' ) ) {
+					window.location.href = element.href;
 				}
 			} );
-		},
 
-		/**
-		 * Run performance test after quick setup.
-		 */
-		runPerformanceTest() {
-			window.SUI.closeModal(); // Hide tracking-modal.
-			// Show performance test modal
-			window.SUI.openModal(
-				'run-performance-onboard-modal',
-				'wpbody-content',
-				undefined,
-				false
-			);
-
-			window.WPHB_Admin.Tracking.track( 'plugin_scan_started', {
-				score_mobile_previous: getString( 'previousScoreMobile' ),
-				score_desktop_previous: getString( 'previousScoreDesktop' ),
-			} );
-
-			this.skipSetup( false );
-
-			// Run performance test
-			window.WPHB_Admin.getModule( 'performance' ).scanner.start();
-		},
-
-		hideUpgradeSummary: () => {
-			window.SUI.closeModal();
-			Fetcher.common.call( 'wphb_hide_upgrade_summary' );
+			return false;
 		},
 	};
-} )( jQuery );
+}( jQuery ) );

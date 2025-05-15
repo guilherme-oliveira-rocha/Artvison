@@ -9,6 +9,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+use Hummingbird\Core\Utils;
+
 ?>
 <div class="sui-box-settings-row">
 	<div class="sui-box-settings-col-1">
@@ -18,9 +20,27 @@ if ( ! defined( 'ABSPATH' ) ) {
 		</span>
 	</div><!-- end col-third -->
 	<div class="sui-box-settings-col-2">
-		<a id="wphb-disable-uptime" href="#" class="sui-button sui-button-ghost" onclick="WPHB_Admin.Tracking.disableFeature( 'Uptime' )">
+		<a id="wphb-disable-uptime" href="#" class="sui-button sui-button-ghost" onclick="wphbMixPanel.disableFeature( 'Uptime' )">
 			<?php esc_html_e( 'Deactivate', 'wphb' ); ?>
 		</a>
 		<span class="spinner standalone"></span>
+		<?php if ( Utils::is_site_hosted_with_whitelabel_disabled() ) { ?>
+			<div class="sui-notice sui-notice-blue" style="margin-top: 10px;">
+				<div class="sui-notice-content">
+					<div class="sui-notice-message">
+						<span class="sui-notice-icon sui-icon-info sui-md" aria-hidden="true"></span>
+						<p>
+							<?php
+							printf( /* translators: %1$s - opening <a> tag, %2$s - closing </a> tag */
+								esc_html__( 'Deactivation of Uptime is not recommended if the %1$sProactive Monitoring%2$s service is enabled.', 'wphb' ),
+								'<a href="' . esc_url( 'https://wpmudev.com/hub2/services' ) . '" target="_blank">',
+								'</a>'
+							)
+							?>
+						</p>
+					</div>
+				</div>
+			</div>
+		<?php } ?>
 	</div>
 </div>

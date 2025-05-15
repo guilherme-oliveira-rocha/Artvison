@@ -9,6 +9,7 @@
 			this.registerClearNetworkCache();
 			this.registerClearCacheFromNotice();
 			this.registerClearCloudflare();
+			this.registerSafeModeActions();
 		},
 
 		/**
@@ -116,17 +117,88 @@
 			);
 		},
 
-		post: ( action ) => {
-			const xhr = new XMLHttpRequest();
-			xhr.open( 'POST', wphbGlobal.ajaxurl + '?action=' + action );
-			xhr.onload = function() {
-				if ( xhr.status === 200 ) {
-					location.reload();
-				}
-			};
+		copyTextToClipboard: (text) => {
+			const textArea = document.createElement("textarea");
+			textArea.value = text;
 
-			xhr.send();
+			// Avoid scrolling to bottom
+			textArea.style.top = "0";
+			textArea.style.left = "0";
+			textArea.style.position = "fixed";
+
+			document.body.appendChild(textArea);
+			textArea.focus();
+			textArea.select();
+
+			try {
+				document.execCommand('copy');
+			} catch (err) {
+				console.error('Oops, unable to copy', err);
+			}
+
+			document.body.removeChild(textArea);
 		},
+
+		/**
+		 * Regsiter safe mode actions.
+		 *
+		 * @since 3.4.0
+		 */
+		registerSafeModeActions() {
+			const saveButton = document.getElementById( 'wphb-ao-safe-mode-save' );
+			if ( saveButton ) {
+				saveButton.addEventListener('click', () => {
+					saveButton.disabled = true;
+					this.request('wphb_react_minify_publish_safe_mode')
+						.then(() => {
+							window.location.href = wphbGlobal.minify_url + '&safe_mode_status=published';
+						});
+				});
+			}
+
+			const copyButton = document.getElementById('wphb-ao-safe-mode-copy');
+			if (copyButton) {
+				copyButton.addEventListener('click', (e) => {
+					e.preventDefault();
+					this.copyTextToClipboard(window.location.href);
+
+					const successClass = 'wphb-ao-safe-mode-copy-success';
+					copyButton.classList.add(successClass);
+					setTimeout(() => {
+						copyButton.classList.remove(successClass);
+					}, 3000);
+				});
+			}
+		},
+
+		/**
+		 * Send AJAX request.
+		 *
+		 * @param {string}  action
+		 * @param {boolean} reload
+		 */
+		post(action, reload = true) {
+			this.request(action)
+				.then(() => {
+					if (reload) {
+						location.reload(action)
+					}
+				});
+		},
+
+		request(action) {
+			return new Promise(resolve => {
+				const xhr = new XMLHttpRequest();
+				xhr.open('POST', wphbGlobal.ajaxurl + '?action=' + action + '&_ajax_nonce=' + wphbGlobal.nonce);
+				xhr.onload = function () {
+					if (xhr.status === 200) {
+						resolve();
+					}
+				};
+
+				xhr.send();
+			});
+		}
 	};
 
 	document.addEventListener( 'DOMContentLoaded', function() {

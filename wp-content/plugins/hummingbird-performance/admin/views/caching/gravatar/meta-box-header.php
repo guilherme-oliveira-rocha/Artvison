@@ -14,7 +14,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 ?>
 <h3  class="sui-box-title"><?php echo esc_html( $title ); ?></h3>
 <div class="sui-actions-right">
-	<button class="sui-button sui-button-ghost sui-tooltip sui-tooltip-top-right" aria-live="polite" data-tooltip="<?php esc_attr_e( 'Clear all locally cached Gravatars', 'wphb' ); ?>">
+	<button class="sui-button sui-button-ghost sui-tooltip sui-tooltip-top-right" aria-live="polite" id="wphb-clear-cache" data-module="gravatar" data-tooltip="<?php esc_attr_e( 'Clear all locally cached Gravatars', 'wphb' ); ?>">
 		<!-- Default State Content -->
 		<span class="sui-button-text-default">
 			<span class="sui-icon-update" aria-hidden="true"></span>

@@ -3,6 +3,7 @@
 /* global ajaxurl */
 /* global wphb */
 /* global _ */
+/* global wphbMixPanel */
 
 /**
  * External dependencies
@@ -102,7 +103,7 @@ import { getString } from '../utils/helpers';
 			}
 
 			let el = $(
-				'.wphb-configure-notification[data-id="' +
+				'button.wphb-configure-notification[data-id="' +
 					hash[ 0 ] +
 					'"][data-type="' +
 					hash[ 1 ] +
@@ -319,6 +320,7 @@ import { getString } from '../utils/helpers';
 			HBFetcher.notifications
 				.enable( this.settings, this.edit )
 				.then( ( response ) => {
+					history.pushState( "", document.title, window.location.pathname + window.location.search );
 					window.location.search += '&status=' + response.code;
 				} )
 				.catch( ( error ) => {
@@ -335,7 +337,7 @@ import { getString } from '../utils/helpers';
 		activate( processSettings = false ) {
 			const moduleName = this.getModuleName();
 			if ( '' !== moduleName ) {
-				WPHB_Admin.Tracking.enableFeature( moduleName );
+				wphbMixPanel.enableFeature( moduleName );
 			}
 
 			this.update( processSettings );
@@ -476,7 +478,7 @@ import { getString } from '../utils/helpers';
 
 			const moduleName = WPHB_Admin.notifications.getModuleName();
 			if ( '' !== moduleName ) {
-				WPHB_Admin.Tracking.disableFeature( moduleName );
+				wphbMixPanel.disableFeature( moduleName );
 			}
 
 			HBFetcher.notifications
@@ -516,6 +518,17 @@ import { getString } from '../utils/helpers';
 		},
 
 		/**
+		 * Sanitize the user input string.
+		 *
+		 * @since 3.4.3
+		 * @param {string} string
+		 */
+		 sanitizeString( string ) {
+			let str = String(string).replace(/[&\/\\#^+()$~%.'":*?<>{}!@]/g, '');
+			return str.trim();
+		},
+
+		/**
 		 * Handle "Add recipient" button click on "Add by email" section of the modal.
 		 *
 		 * @since 3.1.1
@@ -524,9 +537,21 @@ import { getString } from '../utils/helpers';
 			const btn = event.target;
 			btn.classList.add( 'sui-button-onload-text' );
 
-			const name = $( 'input#recipient-name' );
+			const name_input = $( 'input#recipient-name' );
 			const email = $( 'input#recipient-email' );
 			const err = $( '#error-recipient-email' );
+			const name = this.sanitizeString( name_input.val() );
+			const name_err = $( '#error-recipient-name' );
+
+			if ( '' === name ) {
+				name_err.html( wphb.strings.errorEmptyName );
+				name_err.parents().addClass( 'sui-form-field-error' );
+				btn.classList.remove( 'sui-button-onload-text' );
+				return;
+			} else {
+				name_err.html( '' );
+				name_err.parents().removeClass( 'sui-form-field-error' );
+			}
 
 			HBFetcher.notifications
 				.getAvatar( email.val() )
@@ -535,7 +560,7 @@ import { getString } from '../utils/helpers';
 					err.parents().removeClass( 'sui-form-field-error' );
 
 					const user = {
-						name: name.val(),
+						name: name,
 						email: email.val(),
 						role: '',
 						avatar,
@@ -552,7 +577,7 @@ import { getString } from '../utils/helpers';
 						this.addUser( user, 'email' );
 
 						// Reset inputs.
-						name.val( '' ).trigger( 'keyup' );
+						name_input.val( '' ).trigger( 'keyup' );
 						email.val( '' ).trigger( 'keyup' );
 						btn.classList.remove( 'sui-button-onload-text' );
 					} );

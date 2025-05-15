@@ -8,9 +8,9 @@ import classNames from 'classnames';
  * Button functional component.
  *
  * @param {Object}             props          Component props.
- * @param {string}             props.text     Button text.
+ * @param {string|JSX.Element} props.text     Button text.
  * @param {string}             props.url      URL link.
- * @param {Array}              props.classes  Button class.
+ * @param {Array|Object}       props.classes  Button class.
  * @param {string}             props.id       Button ID.
  * @param {string|JSX.Element} props.icon     SUI icon class.
  * @param {string}             props.target   Target __blank?
@@ -53,7 +53,8 @@ export default function Button( {
 	}
 
 	let rel;
-	if ( 'blank' === target ) {
+	if ( 'blank' === target || '_blank' === target ) {
+		target = '_blank';
 		rel = 'noopener noreferrer';
 	}
 

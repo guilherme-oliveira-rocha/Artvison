@@ -40,26 +40,33 @@ export default class Box extends React.Component {
 	}
 
 	/**
-	 * Render component.
+	 * Get inner sticky conetnt.
 	 *
-	 * @return {*} Box component.
+	 * @return {*} Content.
 	 */
-	render() {
+	 renderContent() {
 		const boxHeader = Box.boxHeader(
 			this.props.title,
 			this.props.icon,
 			this.props.headerActions
 		);
 
+		let classesArray;
+
+		if ( this.props.stickyType ) {
+			classesArray = ['sui-box','sui-box-header', this.props.boxClass];
+		} else {
+			classesArray = ['sui-box-header'];
+		}
+
 		return (
-			<div className={ classNames( 'sui-box', this.props.boxClass ) }>
-				<Loader loading={ this.props.loading } />
-
+			<React.Fragment>
+				<Loader loading={ this.props.loading } text={ this.props.loadingText } />
 				{ ! this.props.hideHeader && (
-					<div className="sui-box-header">{ boxHeader }</div>
-				) }
-
-				{ this.props.content && (
+					<div className={ classNames( classesArray ) } >{ boxHeader }</div>
+				)
+				}
+				{ ( ! this.props.stickyType || this.props.showFilters ) && this.props.content && (
 					<div
 						className={ classNames(
 							'sui-box-body',
@@ -69,24 +76,56 @@ export default class Box extends React.Component {
 						{ this.props.content }
 					</div>
 				) }
-
-				{ this.props.footerActions && (
+				{ ( ! this.props.stickyType || this.props.showFilters ) && this.props.footerActions && (
 					<div className="sui-box-footer">
 						{ this.props.footerActions }
 					</div>
 				) }
-			</div>
+			</React.Fragment>
 		);
+	}
+
+	/**
+	 * Render component.
+	 *
+	 * @return {*} Box component.
+	 */
+	render() {
+		const boxRender = this.renderContent();
+		
+		if ( this.props.stickyType ) {
+			return (
+				<React.Fragment>
+					{ boxRender }
+				</React.Fragment>
+			);
+		} else {
+			return (
+				<div className={ classNames( 'sui-box', this.props.boxClass ) }>
+					{ boxRender }
+				</div>
+			);
+		}
 	}
 }
 
 Box.propTypes = {
-	boxClass: PropTypes.string,
-	boxBodyClass: PropTypes.string,
+	boxClass: PropTypes.oneOfType( [
+		PropTypes.string,
+		PropTypes.array,
+	] ),
+	boxBodyClass: PropTypes.oneOfType( [
+		PropTypes.string,
+		PropTypes.array,
+	] ),
 	title: PropTypes.string,
 	icon: PropTypes.string,
 	hideHeader: PropTypes.bool,
 	headerActions: PropTypes.element,
 	content: PropTypes.element,
 	footerActions: PropTypes.element,
+	loading: PropTypes.bool,
+	loadingText: PropTypes.string,
+	stickyType: PropTypes.bool,
+	showFilters: PropTypes.bool,
 };

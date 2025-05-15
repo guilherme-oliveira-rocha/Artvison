@@ -56,9 +56,16 @@ class Notices {
 	 * Notices constructor.
 	 */
 	public function __construct() {
-		$dismiss = isset( $_GET['wphb-dismiss'] ) ? sanitize_text_field( $_GET['wphb-dismiss'] ) : false;
+		$current_page = filter_input( INPUT_GET, 'page', FILTER_UNSAFE_RAW );
+
+		// Do not init notices on setup page.
+		if ( 'wphb-setup' === sanitize_text_field( $current_page ) ) {
+			return;
+		}
+
+		$dismiss = filter_input( INPUT_GET, 'wphb-dismiss', FILTER_UNSAFE_RAW );
 		if ( $dismiss ) {
-			$this->dismiss( $dismiss );
+			$this->dismiss( sanitize_text_field( $dismiss ) );
 		}
 
 		if ( ! function_exists( 'get_plugins' ) ) {
@@ -82,15 +89,54 @@ class Notices {
 
 		if ( is_multisite() ) {
 			add_action( 'network_admin_notices', array( $this, 'upgrade_to_pro' ) );
+			add_action( 'network_admin_notices', array( $this, 'redis_deprecation_notice' ) );
 			add_action( 'network_admin_notices', array( $this, 'free_version_deactivated' ) );
 			add_action( 'network_admin_notices', array( $this, 'free_version_rate' ) );
 			add_action( 'network_admin_notices', array( $this, 'plugin_compat_check' ) );
 		} else {
 			add_action( 'admin_notices', array( $this, 'upgrade_to_pro' ) );
+			add_action( 'admin_notices', array( $this, 'redis_deprecation_notice' ) );
 			add_action( 'admin_notices', array( $this, 'free_version_deactivated' ) );
 			add_action( 'admin_notices', array( $this, 'free_version_rate' ) );
 			add_action( 'admin_notices', array( $this, 'plugin_compat_check' ) );
 		}
+	}
+
+	/**
+	 * Show notice about Redis deprecation.
+	 *
+	 * @since 3.8.0
+	 */
+	public function redis_deprecation_notice() {
+		if ( $this->is_dismissed( 'redis-deprecation', 'option' ) ) {
+			return;
+		}
+
+		if ( ! Utils::is_admin_dashboard() && ! preg_match( '/^(toplevel|hummingbird)(-pro)*_page_wphb/', get_current_screen()->id ) ) {
+			return;
+		}
+
+		$redis_vars = Utils::get_module( 'redis' )->get_status_related_vars();
+
+		if ( ! $redis_vars['redis_connected'] ) {
+			return;
+		}
+
+		$heading = __( 'Important Update: Redis Integration Changes in Hummingbird', 'wphb' );
+		$message = __( '🚨 Heads Up! We’re streamlining our services and the Redis integration will soon be removed. Please be sure to migrate your data or adjust your settings before updating the plugin to the next version.', 'wphb' );
+		$message = '<h3>' . $heading . '</h3><p>' . $message . '</p>';
+
+		$dismiss_url = wp_nonce_url( add_query_arg( 'wphb-dismiss', 'redis-deprecation' ), 'wphb-dismiss-notice' );
+		?>
+		<div class="notice-warning notice wphb-notice">
+			<?php echo wp_kses_post( $message ); ?>
+			<p>
+				<a href="<?php echo esc_url( $dismiss_url ); ?>">
+					<?php esc_html_e( 'I Understand', 'wphb' ); ?>
+				</a>
+			</p>
+		</div>
+		<?php
 	}
 
 	/**
@@ -226,6 +272,7 @@ class Notices {
 			'free-deactivated',
 			'free-rated',
 			'cache-cleaned',
+			'redis-deprecation',
 		);
 
 		if ( in_array( $notice, $user_notices, true ) ) {
@@ -457,6 +504,10 @@ class Notices {
 			return;
 		}
 
+		if ( Utils::is_admin_dashboard() ) {
+			return;
+		}
+
 		if ( $this->is_dismissed( 'free-rated', 'option' ) ) {
 			return;
 		}
@@ -507,12 +558,7 @@ class Notices {
 				Utils::get_admin_menu_url( 'minification' )
 			);
 
-			$text = __(
-				"We've noticed you've made changes to your website. If you’ve installed new plugins or themes,
-			we recommend you re-check Hummingbird's Asset Optimization configuration to ensure those new files are added
-			correctly.",
-				'wphb'
-			);
+			$text = __( "We've noticed you've made changes to your website. If you’ve installed new plugins or themes, we recommend you re-check Hummingbird's Asset Optimization configuration to ensure those new files are added	correctly.", 'wphb' );
 
 			if ( ! ( is_multisite() && is_network_admin() ) ) {
 				$additional .= '<a href="' . esc_url( $recheck_file_url ) . '" class="button button-primary" style="margin-right:10px">' . __( 'Re-check Asset Optimization', 'wphb' ) . '</a>';
@@ -543,7 +589,6 @@ class Notices {
 	 * @return string Text message to be displayed
 	 */
 	public static function plugin_incompat_message( $incompat_plugins ) {
-
 		$text = '<p>' . esc_html__( 'You have multiple WordPress performance plugins installed. This may cause unpredictable behavior and can even break your site. For best results, use only one performance plugin at a time. ', 'wphb' );
 
 		if ( count( $incompat_plugins ) > 1 ) {
@@ -551,7 +596,7 @@ class Notices {
 
 			$text .= '<ul id="wphb-incompat-plugin-list">';
 
-			foreach ( $incompat_plugins as $plugin_k => $plugin ) {
+			foreach ( $incompat_plugins as $plugin ) {
 				$text .= "<li><strong>$plugin</strong></li>";
 			}
 
@@ -574,13 +619,13 @@ class Notices {
 			return;
 		}
 
-		$incompat_plugins = Utils::get_incompat_plugin_list();
+		$incompatible_plugins = Utils::get_incompat_plugin_list();
 
-		if ( count( $incompat_plugins ) <= 0 ) {
+		if ( count( $incompatible_plugins ) <= 0 ) {
 			return;
 		}
 
-		$text = $this->plugin_incompat_message( $incompat_plugins );
+		$text = $this->plugin_incompat_message( $incompatible_plugins );
 
 		// CTA.
 		if ( is_multisite() && current_user_can( 'manage_network_plugins' ) ) {

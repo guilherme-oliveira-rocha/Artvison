@@ -58,23 +58,34 @@ if ( ! defined( 'ABSPATH' ) ) {
 			<td class="sui-hidden-xs"><span class="sui-tag sui-tag-purple sui-tag-sm"><?php esc_html_e( 'Pro', 'wphb' ); ?></span></td>
 			<td colspan="2"><?php esc_html_e( 'Schedule uptime reports and receive results by email.', 'wphb' ); ?></td>
 		</tr>
+		<tr>
+			<td class="sui-table-item-title">
+				<span class="sui-icon-mail sui-hidden-xs" aria-hidden="true"></span>
+				<?php esc_html_e( 'Database Cleanup', 'wphb' ); ?>
+			</td>
+			<td class="sui-hidden-xs"><?php esc_html_e( 'Reporting', 'wphb' ); ?></td>
+			<td class="sui-hidden-xs"><span class="sui-tag sui-tag-purple sui-tag-sm"><?php esc_html_e( 'Pro', 'wphb' ); ?></span></td>
+			<td colspan="2"><?php esc_html_e( 'Schedule database cleanups and receive results by email.', 'wphb' ); ?></td>
+		</tr>
 		</tbody>
 	</table>
 </div>
 
 <div class="sui-box-settings-row sui-upsell-row">
-	<img class="sui-image sui-upsell-image" alt="<?php esc_attr_e( 'Scheduled notifications', 'wphb' ); ?>"
-		src="<?php echo esc_url( WPHB_DIR_URL . 'admin/assets/image/graphic-hb-minify-summary.png' ); ?>"
-		srcset="<?php echo esc_url( WPHB_DIR_URL . 'admin/assets/image/graphic-hb-minify-summary.png' ); ?> 1x, <?php echo esc_url( WPHB_DIR_URL . 'admin/assets/image/graphic-hb-minify-summary@2x.png' ); ?> 2x">
-
-
-	<div class="sui-upsell-notice">
-		<p>
-			<?php esc_html_e( 'Stay on top of potential performance issues with scheduled automatic reports, sent directly to your inbox. Get reports as part of a WPMU DEV membership. Try it out for free.', 'wphb' ); ?>
-			<br/>
-			<a href="<?php echo esc_url( Utils::get_link( 'plugin', 'notifications' ) ); ?>" class="sui-button sui-button-purple" style="margin-top: 10px" target="_blank">
-				<?php esc_html_e( 'Upgrade to Pro', 'wphb' ); ?>
-			</a>
-		</p>
+	<div class="sui-upsell-notice__content">
+		<div class="sui-notice sui-notice-purple">
+			<div class="sui-notice-content">
+				<div class="sui-notice-message">
+					<span class="sui-notice-icon sui-icon-info sui-md" aria-hidden="true"></span>
+					<p>
+						<?php esc_html_e( 'Stay on top of potential performance issues with scheduled automatic reports, sent directly to your inbox. Get reports as part of a WPMU DEV membership. Unlock now with Pro.', 'wphb' ); ?>
+						<br/>
+						<a href="<?php echo esc_url( Utils::get_link( 'plugin', 'notifications' ) ); ?>" class="sui-button sui-button-purple" style="margin-top: 10px" target="_blank">
+							<?php esc_html_e( 'Upgrade to Pro', 'wphb' ); ?>
+						</a>
+					</p>
+				</div>
+			</div>
+		</div>
 	</div>
 </div>

@@ -71,10 +71,7 @@ export default class Configurations extends React.Component {
 				<Checkbox
 					id="auto-css"
 					label={ __( 'CSS files', 'wphb' ) }
-					description={ __(
-						'Hummingbird will minify your CSS files, generating a version that loads faster. It will remove unnecessary characters or lines of code from your file to make it more compact.',
-						'wphb'
-					) }
+					description={ __( 'Hummingbird will minify your CSS files, generating a version that loads faster. It will remove unnecessary characters or lines of code from your file to make it more compact.', 'wphb' ) }
 					checked={ this.props.enabled.styles }
 					onChange={ this.props.onEnabledChange }
 				/>
@@ -82,13 +79,19 @@ export default class Configurations extends React.Component {
 				<Checkbox
 					id="auto-js"
 					label={ __( 'JavaScript files', 'wphb' ) }
-					description={ __(
-						'JavaScript minification is the process of removing whitespace and any code that is not necessary to create a smaller but valid code.',
-						'wphb'
-					) }
+					description={ __( 'JavaScript minification is the process of removing whitespace and any code that is not necessary to create a smaller but valid code.', 'wphb' ) }
 					checked={ this.props.enabled.scripts }
 					onChange={ this.props.onEnabledChange }
 				/>
+
+				{ 'speedy' === this.props.view &&
+					<Checkbox
+						id="auto-fonts"
+						label={ __( 'Fonts', 'wphb' ) }
+						description={ __( 'Enable this option to optimize the delivery of your fonts so they don\'t trigger the "Eliminate render-blocking resources" recommendation in your performance tests.', 'wphb' ) }
+						checked={ this.props.enabled.fonts }
+						onChange={ this.props.onEnabledChange }
+					/> }
 			</React.Fragment>
 		);
 	}
@@ -99,47 +102,31 @@ export default class Configurations extends React.Component {
 	 * @return {JSX.Element}  Content
 	 */
 	tabExclusions() {
-		const types = [ 'styles', 'scripts' ];
-
-		const select = jQuery( '#wphb-auto-exclude' );
-		select.SUIselect2( 'destroy' );
-
-		types.forEach( ( type ) => {
+		let items = [];
+		[ 'styles', 'scripts' ].forEach( ( type ) => {
 			if ( 'undefined' === this.props.assets[ type ] ) {
 				return;
 			}
 
-			Object.values( this.props.assets[ type ] ).forEach( ( el ) => {
-				const text =
-					el.handle + ' (' + __( 'file: ', 'wphb' ) + el.src + ')';
-				const excluded = window.lodash.includes(
-					this.props.exclusions[ type ],
-					el.handle
-				);
-
-				if (
-					0 ===
-					select.find( "option[value='" + el.handle + "']" ).length
-				) {
-					// Only add a new zone if it's not already present.
-					const option = new Option(
-						text,
-						el.handle,
-						false,
-						excluded
-					);
-					option.dataset.type = type;
-					select.append( option ).trigger( 'change' );
-				}
+			const assets = Object.entries( this.props.assets[ type ] ).map( ( el ) => {
+				const value = el[ 1 ].handle + ' (' + __( 'file: ', 'wphb' ) + el[ 1 ].src + ')';
+				return [ type + '-' + el[ 1 ].handle, value ];
 			} );
+
+			items = window.lodash.union( items, assets );
 		} );
 
-		select.SUIselect2();
+		const styles = this.props.exclusions.styles.map( ( el ) => 'styles-' + el );
+		const scripts = this.props.exclusions.scripts.map( ( el ) => 'scripts-' + el );
+		const exclusions = window.lodash.union( styles, scripts );
 
 		return (
 			<Select
 				selectId="wphb-auto-exclude"
 				classes="sui-select-lg"
+				selected={ exclusions }
+				items={ items }
+				onChange={ this.props.updateExclusions }
 				label={ __( 'File exclusions', 'wphb' ) }
 				description={ __(
 					'Type the filename and click on the filename to add it to the list.',
@@ -149,7 +136,7 @@ export default class Configurations extends React.Component {
 					'Start typing the files to exclude...',
 					'wphb'
 				) }
-				multiple="true"
+				multiple={ true }
 			/>
 		);
 	}

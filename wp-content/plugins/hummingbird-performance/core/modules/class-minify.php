@@ -10,6 +10,7 @@ namespace Hummingbird\Core\Modules;
 use Hummingbird\Core\Filesystem;
 use Hummingbird\Core\Module;
 use Hummingbird\Core\Settings;
+use Hummingbird\Core\Utils;
 use WP_Customize_Manager;
 use WP_Scripts;
 use WP_Styles;
@@ -105,6 +106,20 @@ class Minify extends Module {
 	private $fonts = array();
 
 	/**
+	 * Transient expiration timeout.
+	 *
+	 * @var string
+	 */
+	const AO_TRANSIENT_EXPIRATION = 60;
+
+	/**
+	 * Transient name.
+	 *
+	 * @var string
+	 */
+	const AO_TRANSIENT_NAME = 'wphb-processing';
+
+	/**
 	 * Initializes the module. Always executed even if the module is deactivated.
 	 *
 	 * We need the scanner module to be always active, because HB uses is_scanning to detect
@@ -124,12 +139,28 @@ class Minify extends Module {
 		add_filter( 'wphb_async_resource', array( $this, 'filter_resource_async' ), 10, 3 );
 		add_filter( 'wphb_send_resource_to_footer', array( $this, 'filter_resource_to_footer' ), 10, 3 );
 		add_filter( 'wphb_cdn_resource', array( $this, 'filter_resource_cdn' ), 10, 3 );
+		add_filter( 'wphb_minify_scan_url', array( $this, 'maybe_append_safe_mode_query_arg' ) );
+		add_filter( 'wphb_get_settings_for_module_minify', array( $this, 'maybe_serve_safe_mode_minify_settings' ) );
 
 		// Remove files from AO UI.
 		add_filter( 'wphb_minification_display_enqueued_file', array( $this, 'exclude_from_ao_ui' ), 10, 3 );
 
 		// Remove -rtl from CDN links.
 		add_filter( 'style_loader_tag', array( $this, 'remove_rtl_prefix_on_cdn' ) );
+
+		if ( $this->previewing_safe_mode() ) {
+			add_action(
+				'template_redirect',
+				function () {
+					ob_start( array( $this, 'add_safe_mode_param_to_links' ) );
+				}
+			);
+			add_filter( 'wphb_block_resource', array( $this, 'exclude_essential_safe_mode_scripts' ), 10, 2 );
+			add_filter( 'wphb_minify_resource', array( $this, 'exclude_essential_safe_mode_scripts' ), 10, 2 );
+			add_filter( 'wphb_combine_resource', array( $this, 'exclude_essential_safe_mode_scripts' ), 10, 2 );
+		}
+
+		add_action( 'admin_notices', array( $this, 'safe_mode_notice' ) );
 	}
 
 	/**
@@ -174,15 +205,18 @@ class Minify extends Module {
 
 		add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_critical_css' ), 5 );
 
+		// Optimize fonts.
+		add_action( 'wphb_process_fonts', array( $this, 'process_fonts' ) );
+
 		// Disable module on login pages.
 		add_action( 'login_init', array( $this, 'disable_minify_on_page' ) );
 
 		$avoid_minify = filter_input( INPUT_GET, 'avoid-minify', FILTER_VALIDATE_BOOLEAN );
-		if ( $avoid_minify || 'wp-login.php' === $pagenow ) {
+		if ( $avoid_minify || 'wp-login.php' === $pagenow || $this->disable_minify_for_safe_mode() ) {
 			$this->disable_minify_on_page();
 		}
 
-		if ( is_admin() || is_customize_preview() || ( $wp_customize instanceof WP_Customize_Manager ) ) {
+		if ( is_admin() || is_customize_preview() || ( $wp_customize instanceof WP_Customize_Manager ) || apply_filters( 'wphb_do_not_run_ao_files', false ) ) {
 			return;
 		}
 
@@ -196,7 +230,6 @@ class Minify extends Module {
 		// Google fonts optimization.
 		$this->fonts = Settings::get_setting( 'fonts', 'minify' );
 		if ( $this->fonts ) {
-			add_filter( 'wp_resource_hints', array( $this, 'prefetch_fonts' ), 10, 2 );
 			add_filter( 'style_loader_tag', array( $this, 'preload_fonts' ), 10, 3 );
 		}
 	}
@@ -590,6 +623,9 @@ class Minify extends Module {
 		$groups                    = array();
 		$prev_differentiators_hash = false;
 
+		/**
+		 * TODO: we only compare the current group with the previous group but what if two assets have the same attributes but they don't exists right beside each other in the list?
+		 */
 		foreach ( $handles as $handle ) {
 			$registered_dependency = isset( $wp_dependencies->registered[ $handle ] ) ? $wp_dependencies->registered[ $handle ] : false;
 			if ( ! $registered_dependency ) {
@@ -623,6 +659,7 @@ class Minify extends Module {
 			$group_differentiators       = array( 'args' );
 
 			// We'll create a hash for all differentiators.
+			// TODO: extract a method for generating hash
 			$differentiators_hash = array();
 			foreach ( $group_extra_differentiators as $differentiator ) {
 				if ( isset( $registered_dependency->extra[ $differentiator ] ) ) {
@@ -873,7 +910,7 @@ class Minify extends Module {
 	 */
 	public function process_queue() {
 		// Process the queue.
-		if ( get_transient( 'wphb-processing' ) ) {
+		if ( get_transient( self::AO_TRANSIENT_NAME ) ) {
 			// Still processing. Try again.
 			if ( ! ( defined( 'DISABLE_WP_CRON' ) && DISABLE_WP_CRON ) ) {
 				self::schedule_process_queue_cron();
@@ -883,7 +920,7 @@ class Minify extends Module {
 
 		$queue = $this->get_pending_persistent_queue();
 
-		set_transient( 'wphb-processing', true, 60 );
+		set_transient( self::AO_TRANSIENT_NAME, true, self::AO_TRANSIENT_EXPIRATION );
 		// Process 10 groups max in a request.
 		$count = 0;
 
@@ -916,7 +953,9 @@ class Minify extends Module {
 
 		if ( empty( $new_queue ) ) {
 			// Finish processing.
-			delete_transient( 'wphb-processing' );
+			delete_transient( self::AO_TRANSIENT_NAME );
+			// Update AO completion date.
+			self::update_ao_completion_time();
 			if ( defined( 'DOING_CRON' ) && DOING_CRON ) {
 				/**
 				 * Unfortunately, during cron we are not able to detect the first page load, so it will get cached.
@@ -931,7 +970,7 @@ class Minify extends Module {
 			}
 		} else {
 			// Refresh transient.
-			set_transient( 'wphb-processing', true, 60 );
+			set_transient( self::AO_TRANSIENT_NAME, true, self::AO_TRANSIENT_EXPIRATION );
 		}
 	}
 
@@ -959,7 +998,7 @@ class Minify extends Module {
 
 		$current_queue = $this->get_pending_persistent_queue();
 		if ( empty( $current_queue ) ) {
-			update_option( 'wphb_process_queue', $items );
+			update_option( 'wphb_process_queue', $items, 'no' );
 			return;
 		}
 
@@ -974,7 +1013,7 @@ class Minify extends Module {
 		}
 
 		if ( $updated ) {
-			update_option( 'wphb_process_queue', $current_queue );
+			update_option( 'wphb_process_queue', $current_queue, 'no' );
 		}
 	}
 
@@ -1008,7 +1047,7 @@ class Minify extends Module {
 			return;
 		}
 
-		update_option( 'wphb_process_queue', $queue );
+		update_option( 'wphb_process_queue', $queue, 'no' );
 	}
 
 	/**
@@ -1039,6 +1078,9 @@ class Minify extends Module {
 	 */
 	public function clear_cache( $reset_settings = true, $reset_minify = true, $keep_collection = false ) {
 		$this->clear_files();
+
+		// Reset AO completion time.
+		self::update_ao_completion_time( true );
 
 		if ( $reset_settings ) {
 			// This one when cleared will trigger a new scan.
@@ -1081,15 +1123,32 @@ class Minify extends Module {
 		delete_transient( 'wphb_infinite_loop_warning' );
 		delete_option( 'wphb_process_queue' );
 		wp_cache_delete( 'wphb_process_queue', 'options' );
-		delete_transient( 'wphb-processing' );
+		delete_transient( self::AO_TRANSIENT_NAME );
 	}
 
+	/**
+	 * Update AO completion time.
+	 *
+	 * @param bool $reset Reset completed time.
+	 */
+	public static function update_ao_completion_time( $reset = false ) {
+		if ( ! Utils::is_ao_status_bar_enabled() ) {
+			return;
+		}
+
+		$get_date_time = date_i18n( get_option( 'date_format' ) ) . ' @ ' . date_i18n( get_option( 'time_format' ) );
+		$get_date_time = $reset ? '' : $get_date_time;
+
+		// Update setting.
+		Settings::update_setting( 'ao_completed_time', $get_date_time, 'minify' );
+	}
 	/**
 	 * Disable minification module.
 	 */
 	public function disable() {
 		$this->toggle_service( false );
 		$this->clear_cache();
+		$this->delete_safe_mode();
 
 		// Delete notices if they are there.
 		delete_option( 'wphb-minification-files-scanned' );
@@ -1111,7 +1170,7 @@ class Minify extends Module {
 		$minify_default = $default[ $this->get_slug() ];
 
 		// Settings that need to be reset.
-		$ao_settings = array( 'do_assets', 'view', 'type', 'use_cdn', 'nocdn' );
+		$ao_settings = array( 'do_assets', 'view', 'type', 'use_cdn', 'nocdn', 'delay_js', 'delay_js_timeout', 'delay_js_exclusions' );
 
 		// These settings are only valid for single sites or network admin.
 		if ( ! is_multisite() || is_network_admin() ) {
@@ -1194,6 +1253,11 @@ class Minify extends Module {
 			return false;
 		}
 
+		// If handle is already available in error, then ignore the handle.
+		if ( $this->errors_controller->get_handle_error( $handle, $type ) ) {
+			return false;
+		}
+
 		// Filter already minified resources.
 		if ( preg_match( '/\.min\.(css|js)/', basename( $url ) ) ) {
 			return false;
@@ -1212,8 +1276,29 @@ class Minify extends Module {
 	 * @return bool
 	 */
 	public function filter_resource_combine( $value, $handle, $type ) {
-		$options = $this->get_options();
-		$combine = $options['dont_combine'][ $type ];
+		$options  = $this->get_options();
+		$combine  = $options['dont_combine'][ $type ];
+		$delay_js = $options['delay_js'];
+
+		if ( true === $delay_js && 'scripts' === $type ) {
+			return false;
+		}
+
+		/**
+		 * Filter to disable the combine.
+		 *
+		 * @param array  $value  Whether to disable the combine or not, default false.
+		 * @param array  $handle Resource handle.
+		 * @param string $type   Script or style..
+		 */
+		if ( apply_filters( 'wphb_dont_combine_handles', false, $handle, $type ) ) {
+			return false;
+		}
+
+		if ( $this->errors_controller->get_handle_error( $handle, $type ) ) {
+			return false;
+		}
+
 		if ( in_array( $handle, $combine, true ) ) {
 			return false;
 		}
@@ -1275,11 +1360,11 @@ class Minify extends Module {
 	public function filter_resource_to_footer( $value, $handle, $type ) {
 		$options   = $this->get_options();
 		$to_footer = $options['position'][ $type ];
-		if ( array_key_exists( $handle, $to_footer ) && 'footer' === $to_footer[ $handle ] ) {
-			return true;
+		if ( ! in_array( $handle, $to_footer, true ) ) {
+			return $value;
 		}
 
-		return $value;
+		return true;
 	}
 
 	/**
@@ -1384,7 +1469,10 @@ class Minify extends Module {
 		$groups = Minify\Minify_Group::get_groups_from_handle( $handle, $type );
 
 		foreach ( $groups as $group ) {
-			wp_delete_post( $group->file_id );
+            if ( 'wphb_minify_group' === get_post_type( $group->file_id ) ) {
+	            Utils::get_module( 'minify' )->log( 'Deleting (in clear_file function) the minify group file id : ' . $group->file_id );
+                wp_delete_post( $group->file_id );
+            }
 		}
 	}
 
@@ -1396,7 +1484,10 @@ class Minify extends Module {
 
 		foreach ( $groups as $group ) {
 			// This will also delete the file. See WP_Hummingbird\Core\Modules\Minify::on_delete_post().
-			wp_delete_post( $group->ID );
+			if ( 'wphb_minify_group' === get_post_type( $group->ID ) ) {
+				Utils::get_module( 'minify' )->log( 'Deleting (in clear_files function) the minify group ID : ' . $group->ID );
+                wp_delete_post( $group->ID );   
+			}
 		}
 
 		wp_cache_delete( 'wphb_minify_groups' );
@@ -1422,6 +1513,7 @@ class Minify extends Module {
 				if ( isset( $collection[ $group->type ][ $handle ] ) ) {
 					$collection[ $group->type ][ $handle ]['original_size']   = $group->get_handle_original_size( $handle );
 					$collection[ $group->type ][ $handle ]['compressed_size'] = $group->get_handle_compressed_size( $handle );
+					$collection[ $group->type ][ $handle ]['file_url'] = $group->get_file_url();
 				}
 			}
 		}
@@ -1457,8 +1549,8 @@ class Minify extends Module {
 				$options['enabled'] = $value;
 				// If deactivated for whole network, also deactivate CDN.
 				if ( false === $value ) {
-					$options['use_cdn'] = false;
-					$options['log']     = false;
+					$options['use_cdn']  = false;
+					$options['log']      = false;
 				}
 			} else {
 				// Updating on subsite.
@@ -1504,6 +1596,11 @@ class Minify extends Module {
 	 * @since 1.8
 	 */
 	public function enqueue_critical_css() {
+		// If critical css is enable return early.
+		if ( Utils::get_module( 'critical_css' )->is_active() ) {
+			return;
+		}
+
 		$assets_dir = Filesystem::critical_assets_dir();
 		$file       = $assets_dir['path'] . 'critical.css';
 
@@ -1527,11 +1624,12 @@ class Minify extends Module {
 	 *
 	 * @since 1.8
 	 *
+	 * @param string $filename CSS filename.
 	 * @return string
 	 */
-	public static function get_css() {
+	public static function get_css( $filename = 'critical' ) {
 		$assets_dir = Filesystem::critical_assets_dir();
-		$file       = $assets_dir['path'] . 'critical.css';
+		$file       = $assets_dir['path'] . $filename . '.css';
 
 		if ( file_exists( $file ) ) {
 			return file_get_contents( $file );
@@ -1545,11 +1643,12 @@ class Minify extends Module {
 	 *
 	 * @since 1.8
 	 *
-	 * @param string $content  CSS content.
+	 * @param string $content   CSS content.
+	 * @param string $filename  CSS filename.
 	 *
 	 * @return array
 	 */
-	public static function save_css( $content ) {
+	public static function save_css( $content, $filename = 'critical' ) {
 		if ( ! is_string( $content ) ) {
 			return array(
 				'success' => false,
@@ -1567,7 +1666,7 @@ class Minify extends Module {
 		}
 
 		$assets_dir = Filesystem::critical_assets_dir();
-		$file       = $assets_dir['path'] . 'critical.css';
+		$file       = $assets_dir['path'] . $filename . '.css';
 		$content    = trim( $content );
 		if ( ! empty( $content ) ) {
 			$status = $fs->write( $file, $content );
@@ -1667,34 +1766,6 @@ class Minify extends Module {
 	}
 
 	/**
-	 * Prefetch Google fonts.
-	 *
-	 * @since 3.0.0
-	 *
-	 * @param array  $hints          URLs to print for resource hints.
-	 * @param string $relation_type  The relation type the URLs are printed for, e.g. 'preconnect' or 'prerender'.
-	 *
-	 * @return array
-	 */
-	public function prefetch_fonts( $hints, $relation_type ) {
-		if ( 'preconnect' !== $relation_type ) {
-			return $hints;
-		}
-
-		// TODO: we need a way to add crossorigin attribute.
-
-		if ( ! in_array( 'https://fonts.gstatic.com', $hints, true ) ) {
-			$hints[] = 'https://fonts.gstatic.com';
-		}
-
-		if ( ! in_array( 'https://fonts.googleapis.com', $hints, true ) ) {
-			$hints[] = 'https://fonts.googleapis.com';
-		}
-
-		return $hints;
-	}
-
-	/**
 	 * Add CDN URL to header for better speed.
 	 *
 	 * @since 3.1.0
@@ -1713,4 +1784,442 @@ class Minify extends Module {
 		return $hints;
 	}
 
+	/**
+	 * Auto optimize all fonts after scans.
+	 *
+	 * @since 3.3.0
+	 */
+	public function process_fonts() {
+		$options    = $this->get_options();
+		$collection = Minify\Sources_Collector::get_collection();
+
+		if ( ! isset( $collection['styles'] ) ) {
+			return;
+		}
+
+		$updated = false;
+		foreach ( $collection['styles'] as $item ) {
+			if ( ! isset( $item['src'] ) || false === strpos( $item['src'], 'fonts.googleapis.com' ) ) {
+				continue;
+			}
+
+			$key = array_search( $item['handle'], $options['fonts'], true );
+
+			// Add new font to optimization array.
+			if ( false === $key ) {
+				array_push( $options['fonts'], $item['handle'] );
+				$updated = true;
+			}
+		}
+
+		if ( $updated ) {
+			$this->update_options( $options );
+		}
+	}
+
+	/**
+	 * Filter through enable/disable switchers.
+	 *
+	 * @since 3.4.0
+	 *
+	 * @param array  $asset  Asset details.
+	 * @param string $type   Asset type: scripts|styles.
+	 *
+	 * @return array
+	 */
+	private function get_disabled_switchers( $asset, $type ) {
+		$error = $this->errors_controller->get_handle_error( $asset['handle'], $type );
+
+		$disable_switchers = $error ? $error['disable'] : array();
+
+		/**
+		 * Allows enable/disable switchers in minification page.
+		 *
+		 * @param array  $disable_switchers  List of switchers disabled for an item ( include, minify, combine).
+		 * @param array  $item               Info about the current item.
+		 * @param string $type               Type of the current item (scripts|styles).
+		 */
+		$disable_switchers = apply_filters( 'wphb_minification_disable_switchers', $disable_switchers, $asset, $type );
+
+		// Disable inline for assets larger than 4 kb.
+		if ( 'styles' === $type && apply_filters( 'wphb_inline_limit_kb', 4.0 ) < (float) $asset['originalSize'] && ! in_array( 'inline', $disable_switchers, true ) ) {
+			$disable_switchers[] = 'inline';
+		}
+
+		return $disable_switchers;
+	}
+
+	/**
+	 * Process collection.
+	 *
+	 * @since 3.4.0
+	 *
+	 * @return array
+	 */
+	public function get_processed_collection() {
+		$collection = $this->get_resources_collection();
+
+		// This will be used for filtering.
+		$theme   = wp_get_theme();
+		$plugins = get_option( 'active_plugins', array() );
+		if ( is_multisite() ) {
+			foreach ( get_site_option( 'active_sitewide_plugins', array() ) as $plugin => $item ) {
+				$plugins[] = $plugin;
+			}
+		}
+
+		foreach ( $collection as $type => $assets ) {
+			foreach ( $assets as $handle => $asset ) {
+				/**
+				 * Filter minification enqueued files items displaying.
+				 *
+				 * @param bool   $display  If set to true, display the item. Default false.
+				 * @param array  $item     Item data.
+				 * @param string $type     Type of the current item (scripts|styles).
+				 */
+				if ( ! apply_filters( 'wphb_minification_display_enqueued_file', true, $asset, $type ) ) {
+					unset( $collection[ $type ][ $handle ] );
+					continue;
+				}
+
+				// Remove unused fields.
+				unset( $asset['args'] );
+				unset( $asset['deps'] );
+				unset( $asset['extra'] );
+				unset( $asset['textdomain'] );
+				unset( $asset['translations_path'] );
+				unset( $asset['ver'] );
+
+				$settings = array(
+					'component' => '',
+					'extension' => 'OTHER',
+					'filter'    => '',
+					'isLocal'   => Minify\Minify_Group::is_src_local( $asset['src'] ),
+				);
+
+				$asset['compressedSize'] = isset( $asset['compressed_size'] ) ? $asset['compressed_size'] : false;
+				unset( $asset['compressed_size'] );
+
+				// Get original file size for local files that don't have it set for some reason.
+				if ( ! isset( $asset['original_size'] ) && file_exists( Utils::src_to_path( $asset['src'] ) ) ) {
+					$asset['original_size'] = number_format_i18n( filesize( Utils::src_to_path( $asset['src'] ) ) / 1000, 1 );
+				}
+
+				// With remote assets we can't easily get the file size without doing extra remote queries.
+				if ( isset( $asset['original_size'] ) ) {
+					$asset['originalSize'] = $asset['original_size'];
+					unset( $asset['original_size'] );
+				} else {
+					$asset['originalSize'] = false;
+				}
+
+				if ( isset( $asset['file_url'] ) ) {
+					$asset['fileUrl'] = empty( $asset['file_url'] )
+						? ''
+						: $asset['file_url'];
+					unset( $asset['file_url'] );
+				}
+
+				$settings['disableSwitchers'] = $this->get_disabled_switchers( $asset, $type );
+
+				if ( preg_match( '/wp-content\/themes\/(.*)\//', $asset['src'], $matches ) ) {
+					$settings['component'] = 'theme';
+					$settings['filter']    = $theme->get( 'Name' );
+				} elseif ( preg_match( '/wp-content\/plugins\/([\w\-_]*)\//', $asset['src'], $matches ) ) {
+					if ( ! function_exists( 'get_plugin_data' ) ) {
+						include_once ABSPATH . 'wp-admin/includes/plugin.php';
+					}
+
+					// The source comes from a plugin.
+					foreach ( $plugins as $active_plugin ) {
+						if ( stristr( $active_plugin, $matches[1] ) ) {
+							// It seems that we found the plugin but let's double-check.
+							$plugin_data = get_plugin_data( WP_PLUGIN_DIR . '/' . $active_plugin );
+							if ( $plugin_data['Name'] ) {
+								// Found plugin, add it as a filter.
+								$settings['filter'] = $plugin_data['Name'];
+							}
+							break;
+						}
+					}
+
+					$settings['component'] = 'plugin';
+				}
+
+				$extension = pathinfo( $asset['src'], PATHINFO_EXTENSION );
+				if ( false !== strpos( $asset['src'], 'fonts.googleapis.com' ) ) {
+					$settings['extension'] = 'FONT';
+				} elseif ( $extension && preg_match( '/(css)\??[a-zA-Z=0-9]*/', $extension ) ) {
+					$settings['extension'] = 'CSS';
+				} elseif ( $extension && preg_match( '/(js)\??[a-zA-Z=0-9]*/', $extension ) ) {
+					$settings['extension'] = 'JS';
+				}
+
+				// Add settings to the asset.
+				$asset['settings'] = $settings;
+
+				// If this is a Google font - move to fonts section.
+				if ( 'FONT' === $settings['extension'] ) {
+					unset( $collection[ $type ][ $handle ] );
+					$collection['fonts'][ $handle ] = $asset;
+				} else {
+					$collection[ $type ][ $handle ] = $asset;
+				}
+			}
+		}
+
+		// Get minify stats data.
+		$dashboard_data               = Utils::get_ao_stats_data();
+		$collection['dashboard_data'] = $dashboard_data;
+
+		return $collection;
+	}
+
+	/**
+	 * Returns true if safe mode is active, and we are *not* in the safe mode preview.
+	 *
+	 * @since 3.4.0
+	 *
+	 * @return bool
+	 */
+	private function disable_minify_for_safe_mode() {
+		if ( is_admin() ) {
+			return false;
+		}
+
+		if ( ! self::get_safe_mode_status() ) {
+			return false;
+		}
+
+		$status = $this->previewing_safe_mode();
+		return true !== $status;
+	}
+
+	public function maybe_append_safe_mode_query_arg( $url ) {
+		if ( self::get_safe_mode_status() ) {
+			$url = add_query_arg( 'minify-safe', 'true', $url );
+		}
+
+		return $url;
+	}
+
+	public function maybe_serve_safe_mode_minify_settings( $settings ) {
+		if ( $this->previewing_safe_mode() ) {
+			return array_merge( $settings, $this->get_safe_mode_settings() );
+		}
+
+		return $settings;
+	}
+
+	public static function get_safe_mode_status() {
+		$value = self::get_safe_mode_option_value();
+
+		return $value['status'];
+	}
+
+	public function set_safe_mode_status( $status ) {
+		$value           = self::get_safe_mode_option_value();
+		$value['status'] = $status;
+		$this->set_safe_mode_option_value( $value );
+	}
+
+	/**
+	 * @return array
+	 */
+	public function get_safe_mode_settings() {
+		$value = self::get_safe_mode_option_value();
+
+		return $value['settings'];
+	}
+
+	public function set_safe_mode_settings( $settings ) {
+		$value             = self::get_safe_mode_option_value();
+		$value['settings'] = $settings;
+		$this->set_safe_mode_option_value( $value );
+	}
+
+	public function delete_safe_mode() {
+		Settings::delete( 'wphb_safe_mode' );
+	}
+
+	public function reset_safe_mode() {
+		$this->set_safe_mode_option_value( array(
+			'status'   => false,
+			'settings' => array(),
+		) );
+	}
+
+	private function set_safe_mode_option_value( $value ) {
+		Settings::update( 'wphb_safe_mode', $value );
+
+		return $value;
+	}
+
+	private static function get_safe_mode_option_value() {
+		$raw_value = Settings::get( 'wphb_safe_mode', array() );
+
+		$value             = array();
+		$value['status']   = ! empty( $raw_value['status'] );
+		$value['settings'] = empty( $raw_value['settings'] ) || ! is_array( $raw_value['settings'] )
+			? array()
+			: $raw_value['settings'];
+
+		return $value;
+	}
+
+	/**
+	 * @return mixed
+	 */
+	private function previewing_safe_mode() {
+		$query_param_value = filter_input( INPUT_GET, 'minify-safe', FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE );
+
+		return self::get_safe_mode_status() && true === $query_param_value;
+	}
+
+	public function add_safe_mode_param_to_links( $content ) {
+		if ( ! preg_match( '/(?=<body).*<\/body>/is', $content, $body ) ) {
+			return $content;
+		}
+
+		$body            = $body[0];
+		$links           = array();
+		$safe_mode_links = array();
+		foreach ( $this->find_internal_links( $body ) as $link ) {
+			if ( empty( $link ) || ! is_string( $link ) ) {
+				continue;
+			}
+
+			$delimiter         = '~';
+			$link_pattern      = "$delimiter" . preg_quote( $link, $delimiter ) . "(?=\s*[\"'])$delimiter";
+			$links[]           = $link_pattern;
+			$safe_mode_links[] = $this->is_frontend_link( $link )
+				? esc_url_raw( add_query_arg( 'minify-safe', 'true', $link ) )
+				: $link;
+		}
+
+		$safe_mode_body = preg_replace( $links, $safe_mode_links, $body );
+		if ( ! empty( $safe_mode_body ) ) {
+			$content = str_replace( $body, $safe_mode_body, $content );
+		}
+
+		return $content;
+	}
+
+	private function find_internal_links( $content ) {
+		$links = array();
+
+		$elements = $this->get_tags( $content, 'a' );
+		if ( ! $elements || ! is_a( $elements, '\DOMNodeList' ) ) {
+			return $links;
+		}
+
+		for ( $i = 0; $i < $elements->length; $i ++ ) {
+			/**
+			 * @var $element \DOMElement
+			 */
+			$element = $elements->item( $i );
+			if ( ! $element && ! is_a( $element, '\DOMElement' ) ) {
+				continue;
+			}
+
+			$attribute = $element->getAttribute( 'href' );
+			if ( ! empty( $attribute ) && $this->is_internal_link( $attribute ) ) {
+				$links[ $attribute ] = $attribute;
+			}
+		}
+
+		return array_values( array_unique( $links ) );
+	}
+
+	private function get_tags( $markup, $tag ) {
+		if ( ! class_exists( '\DOMDocument' ) || ! function_exists( 'libxml_use_internal_errors' ) ) {
+			return false;
+		}
+
+		$document       = new \DOMDocument();
+		$internalErrors = libxml_use_internal_errors( true );
+		$html           = $document->loadHTML( $markup, LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD );
+		libxml_use_internal_errors( $internalErrors );
+
+		return $html ? $document->getElementsByTagName( $tag ) : false;
+	}
+
+	private function is_internal_link( $link ) {
+		return parse_url( $link, PHP_URL_HOST ) === parse_url( home_url(), PHP_URL_HOST );
+	}
+
+	private function is_frontend_link( $link ) {
+		return ! $this->is_admin_link( $link )
+		       && ! $this->is_asset_link( $link );
+	}
+
+	private function is_admin_link( $link ) {
+		$admin_url       = untrailingslashit( admin_url() );
+		$admin_url_parts = explode( '/', $admin_url );
+		if ( empty( $admin_url_parts ) || empty( $link ) ) {
+			return false;
+		}
+
+		$last_part_index  = count( $admin_url_parts ) - 1;
+		$admin_identifier = $admin_url_parts[ $last_part_index ]; // This is usually going to be wp-admin but not always (e.g. due to defender)
+
+		return mb_strpos( trailingslashit( $link ), "/$admin_identifier/" ) !== false;
+	}
+
+	private function get_wp_media_extensions() {
+		$extensions = array();
+		foreach ( wp_get_ext_types() as $type_extensions ) {
+			$extensions = array_merge(
+				$extensions,
+				$type_extensions
+			);
+		}
+
+		return $extensions;
+	}
+
+	private function is_asset_link( $url ) {
+		foreach ( $this->get_wp_media_extensions() as $extension ) {
+			if ( str_ends_with( $url, ".$extension" ) ) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	public function exclude_essential_safe_mode_scripts( $block, $handle ) {
+		if ( $handle === 'wphb-global' ) {
+			return false;
+		}
+
+		return $block;
+	}
+
+	public function safe_mode_notice() {
+		if ( ! self::get_safe_mode_status() || ! current_user_can( Utils::get_admin_capability() ) ) {
+			return;
+		}
+
+		$current_screen = get_current_screen();
+		if ( $current_screen && str_ends_with( $current_screen->id, 'wphb-minification' ) ) {
+			// Don't show on the minification page itself 
+			return;
+		}
+
+		$message                = esc_html__( "We've noticed that you have Safe Mode active in Hummingbird Asset Optimization. Keeping safe mode active for a long period of time may cause page load delays on your live site. We recommend that you review your changes and publish them to live, or disable safe mode.", 'wphb' );
+		$disable_safe_mode_url = admin_url( 'admin.php?page=wphb-minification&action=disable_safe_mode' );
+
+		?>
+		<div class="notice notice-warning">
+			<p><?php echo wp_kses_post( $message ); ?></p>
+			<div style="margin-bottom: 10px; display:flex; align-items:center;">
+				<a class="button button-primary"
+				   href="<?php echo esc_attr( $disable_safe_mode_url ); ?>">
+					<?php esc_html_e( 'Disable safe mode', 'wphb' ); ?>
+				</a>
+			</div>
+		</div>
+		<?php
+	}
 }

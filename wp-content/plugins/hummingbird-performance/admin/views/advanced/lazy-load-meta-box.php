@@ -8,9 +8,9 @@
  * @var bool $is_enabled Comment lazy load status.
  * @var string $method Lazy Load method - Click, Scroll
  * @var array $button Button - Dimension, Color, Alignment
+ * @var bool $preload Lazy Preload Comment.
  * @var int $threshold Minimum comment count to lazy load
  * @var string $smush_activate_url URL to activate Smush Free version.
- * @var string $smush_activate_pro_url URL to activate Smush Pro version.
  * @var string $activate_smush_lazy_load_url URL to activate Lazy Load in Smush.
  * @var bool $is_smush_lazy_load_configurable Can the user activate Smush.
  * @var bool $is_smush_active Smush Activation status.
@@ -279,13 +279,23 @@ if ( ! defined( 'ABSPATH' ) ) {
 				?>
 				<span class="sui-description" id="comments_per_page_desc">
 				<?php
-					/* translators: %1$s - anchor link, %2$s - closing tag */
+					/* translators: %1$s - opening a tag, %2$s - closing a tag */
 					printf( esc_html__( 'If you are using native WordPress comments, limiting the number of comments to grab from the database will reduce the time to query them. You can change the limit in %1$sDiscussion Settings%2$s.', 'wphb' ), '<a href="' . esc_url( $discussion_settings ) . '">', '</a>' );
 				?>
 				</span>
 				<div class="sui-form-field">
 					<input class="sui-form-control sui-input-sm" disabled value="<?php echo (int) get_option( 'comments_per_page' ); ?>" aria-labelledby="comments_per_page_label" aria-describedby="comments_per_page_desc">
 				</div>
+			</div>
+			<div id="lazy_load-preload" class="sui-margin-top">
+				<label for="preload" class="sui-toggle">
+					<input type="checkbox" name="preload" id="preload" aria-labelledby="preload-label" <?php checked( $preload ); ?> />
+					<span class="sui-toggle-slider" aria-hidden="true"></span>
+					<span id="preload-label" class="sui-toggle-label"><?php esc_html_e( 'Enable comments preload', 'wphb' ); ?></span>
+				</label>
+				<span class="sui-description" id="preload">
+					<?php esc_html_e( 'Enable this option to preload the first page of comments.', 'wphb' ); ?>
+				</span>
 			</div>
 			<div id="lazy_load-threshold" class="sui-margin-top" aria-label="<?php esc_html_e( 'Set comment threshold to lazy load comments.', 'wphb' ); ?>">
 				<span class="sui-label-note" id="threshold_label">
@@ -311,7 +321,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 				?>
 				<span class="sui-description">
 					<?php
-					/* translators: %1$s - anchor link, %2$s - closing tag */
+					/* translators: %1$s - opening a tag, %2$s - closing a tag */
 					printf( esc_html__( 'Make sure you have activated %1$sGravatar Caching%2$s. It will store local copies of avatars used in comments and in your theme.', 'wphb' ), '<a href="' . esc_url( $gravatar_caching_url ) . '">', '</a>' );
 					?>
 				</span>
@@ -334,7 +344,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 		<?php $show_smush_box = true; ?>
 		<a style="display: block; color: #17A8E3; margin-top: 10px;" href="<?php echo esc_url( Utils::get_link( 'smush' ) ); ?>" class="upsell-action-link" id="smush-install">
 			<?php
-			/* translators: %1$s - plugin name */
+			/* translators: %s - plugin name */
 			printf( esc_html__( 'Install %s', 'wphb' ), esc_attr( $smush_plugin_name ) );
 			?>
 		</a>
@@ -342,9 +352,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 	<?php elseif ( $can_install_plugin && ( $is_smush_installed && ! $is_smush_active ) ) : ?>
 		<?php
 		$show_smush_box = true;
-		$activate_url   = ( $is_smush_pro ) ? $smush_activate_pro_url : $smush_activate_url;
 		?>
-		<a style="display: block; color: #17A8E3; margin-top: 10px;" href="<?php echo esc_url( $activate_url ); ?>" class="upsell-action-link" id="smush-activate">
+		<a style="display: block; color: #17A8E3; margin-top: 10px;" href="<?php echo esc_url( $smush_activate_url ); ?>" class="upsell-action-link" id="smush-activate">
 			<?php
 			/* translators: %s - Plugin name */
 			printf( esc_html__( 'Activate %s', 'wphb' ), esc_attr( $smush_installed_plugin_name ) );
@@ -358,19 +367,21 @@ if ( ! defined( 'ABSPATH' ) ) {
 	<?php endif; ?>
 	<?php $message = ob_get_clean(); ?>
 	<?php if ( $show_smush_box && ! apply_filters( 'wpmudev_branding_hide_branding', false ) ) : ?>
-	<div class="sui-box-settings-row sui-upsell-row">
-		<img class="sui-image sui-upsell-image" style="width: auto !important; height: 108px !important; margin-bottom: -30px" src="<?php echo esc_url( WPHB_DIR_URL . 'admin/assets/image/smush-share-widget.png' ); ?>"
-			srcset="<?php echo esc_url( WPHB_DIR_URL . 'admin/assets/image/smush-share-widget.png' ); ?> 1x, <?php echo esc_url( WPHB_DIR_URL . 'admin/assets/image/smush-share-widget@2x.png' ); ?> 2x" alt="">
-
-		<div class="sui-upsell-notice">
-			<p>
-				<?php
-					/* translators: %1$s - plugin name */
-					printf( esc_html__( 'Did you know that %1$s provides media lazy loading? It will reduce load on your server and will speed up the page load time. %1$s also delivers up to 2x better compression.', 'wphb' ), esc_attr( $smush_plugin_name ) );
-					echo '<br>';
-					echo $message;
-				?>
-			</p>
+	<div class="sui-upsell-row">
+	<div class="sui-notice sui-notice-info">
+			<div class="sui-notice-content">
+				<div class="sui-notice-message">
+					<span class="sui-notice-icon sui-icon-info sui-md" aria-hidden="true"></span>
+					<p>
+					<?php
+						/* translators: %1$s - plugin name */
+						printf( esc_html__( 'Did you know that %1$s provides media lazy loading? It will reduce load on your server and will speed up the page load time. %1$s also delivers up to 2x better compression.', 'wphb' ), esc_attr( $smush_plugin_name ) );
+						echo '<br>';
+						echo $message;
+					?>
+					</p>
+				</div>
+			</div>
 		</div>
 	</div>
 	<?php endif; ?>

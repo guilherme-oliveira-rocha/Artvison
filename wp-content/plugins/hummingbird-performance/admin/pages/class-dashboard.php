@@ -98,7 +98,8 @@ class Dashboard extends Page {
 		$this->performance->report_dismissed = Performance::report_dismissed();
 		$this->performance->is_doing_report  = Performance::is_doing_report();
 
-		$selected_type = filter_input( INPUT_GET, 'type', FILTER_SANITIZE_STRING );
+		$selected_type = filter_input( INPUT_GET, 'type', FILTER_UNSAFE_RAW );
+		$selected_type = sanitize_text_field( $selected_type );
 
 		$this->performance->type = 'mobile' === $selected_type ? 'mobile' : 'desktop';
 	}
@@ -204,7 +205,7 @@ class Dashboard extends Page {
 
 		$options = Utils::get_module( 'page_cache' )->get_options();
 
-		if ( ! isset( $options['integrations'] ) || empty( $options['integrations'] ) ) {
+		if ( empty( $options['integrations'] ) ) {
 			return $modules;
 		}
 
@@ -483,7 +484,7 @@ class Dashboard extends Page {
 			if ( $this->is_smush_installed() && $this->is_smush_enabled() && $this->is_smush_configurable() ) {
 				$smush_footer = array( $this, 'dashboard_smush_metabox_footer' );
 			}
-			$box_content_class = Utils::is_member() ? 'sui-box-body' : 'sui-box-body sui-upsell-items';
+			$box_content_class = Utils::is_member() && $this->is_smush_pro ? 'sui-box-body' : 'sui-box-body sui-upsell-items';
 
 			$this->add_meta_box(
 				'dashboard-smush',
@@ -503,7 +504,7 @@ class Dashboard extends Page {
 		}
 
 		/* Uptime */
-		if ( ! Utils::is_member() ) {
+		if ( ! Utils::get_module( 'uptime' )->has_access() ) {
 			$this->add_meta_box(
 				'dashboard/uptime/no-membership',
 				__( 'Uptime Monitoring', 'wphb' ),
@@ -548,7 +549,7 @@ class Dashboard extends Page {
 		if ( ! Utils::is_member() || ( defined( 'WPHB_WPORG' ) && WPHB_WPORG ) ) {
 			$this->add_meta_box(
 				'dashboard/reports',
-				__( 'Reports', 'wphb' ),
+				__( 'Notifications', 'wphb' ),
 				null,
 				null,
 				null,
@@ -564,7 +565,7 @@ class Dashboard extends Page {
 		$site_date = $cf_current = '';
 		$cf_active = false;
 
-		if ( Utils::is_member() && isset( $this->uptime_report->up_since ) && false !== $this->uptime_report->up_since ) {
+		if ( Utils::get_module( 'uptime' )->has_access() && isset( $this->uptime_report->up_since ) && false !== $this->uptime_report->up_since ) {
 			$gmt_date  = date( 'Y-m-d H:i:s', $this->uptime_report->up_since );
 			$site_date = get_date_from_gmt( $gmt_date, get_option( 'date_format' ) . ' ' . get_option( 'time_format' ) );
 		}
@@ -888,49 +889,15 @@ class Dashboard extends Page {
 	 * Asset optimization meta box.
 	 */
 	public function dashboard_minification_module_metabox() {
-		$minify_module = Utils::get_module( 'minify' );
-		$collection    = $minify_module->get_resources_collection();
+		$args                        = Utils::get_ao_stats_data();
+		$args['is_member']           = Utils::is_member();
+		$options                     = Utils::get_module( 'minify' )->get_options();
+		$args['delay_js']            = $options['delay_js'];
+		$args['ao_page_url']         = Utils::get_admin_menu_url( 'minification' ) . '&view=tools';
+		$args['delayupsell']         = Utils::get_link( 'plugin', 'hummingbird_delay_js_dash_widget' );
+		$args['critical_css']        = $options['critical_css'];
+		$args['critical_css_upsell'] = Utils::get_link( 'plugin', 'hummingbird_criticalcss_dash_widget' );
 
-		// Remove those assets that we don't want to display.
-		foreach ( $collection['styles'] as $key => $item ) {
-			if ( ! apply_filters( 'wphb_minification_display_enqueued_file', true, $item, 'styles' )
-				|| ! isset( $item['original_size'], $item['compressed_size'] ) ) {
-				unset( $collection['styles'][ $key ] );
-			}
-		}
-		foreach ( $collection['scripts'] as $key => $item ) {
-			if ( ! apply_filters( 'wphb_minification_display_enqueued_file', true, $item, 'scripts' )
-				|| ! isset( $item['original_size'], $item['compressed_size'] ) ) {
-				unset( $collection['scripts'][ $key ] );
-			}
-		}
-
-		$enqueued_files = count( $collection['scripts'] ) + count( $collection['styles'] );
-
-		$original_size_styles  = Utils::calculate_sum( wp_list_pluck( $collection['styles'], 'original_size' ) );
-		$original_size_scripts = Utils::calculate_sum( wp_list_pluck( $collection['scripts'], 'original_size' ) );
-
-		$original_size = $original_size_scripts + $original_size_styles;
-
-		$compressed_size_styles  = Utils::calculate_sum( wp_list_pluck( $collection['styles'], 'compressed_size' ) );
-		$compressed_size_scripts = Utils::calculate_sum( wp_list_pluck( $collection['scripts'], 'compressed_size' ) );
-		$compressed_size         = $compressed_size_scripts + $compressed_size_styles;
-
-		if ( ( $original_size_scripts + $original_size_styles ) <= 0 ) {
-			$percentage = 0;
-		} else {
-			$percentage = 100 - (int) $compressed_size * 100 / (int) $original_size;
-		}
-		$percentage = number_format_i18n( $percentage, 1 );
-
-		$compressed_size_styles  = number_format( $original_size_styles - $compressed_size_styles, 0 );
-		$compressed_size_scripts = number_format( $original_size_scripts - $compressed_size_scripts, 0 );
-
-		// Internalization numbers.
-		$original_size   = number_format_i18n( $original_size, 1 );
-		$compressed_size = number_format_i18n( $compressed_size, 1 );
-
-		$args = compact( 'enqueued_files', 'original_size', 'compressed_size', 'compressed_size_scripts', 'compressed_size_styles', 'percentage' );
 		$this->view( 'dashboard/minification/module-meta-box', $args );
 	}
 
@@ -1026,11 +993,15 @@ class Dashboard extends Page {
 	 * Dashboard gzip meta box.
 	 */
 	public function dashboard_gzip_module_metabox() {
+		$minify = Utils::get_module( 'minify' );
+
 		$this->view(
 			'dashboard/gzip/module-meta-box',
 			array(
-				'status'         => $this->gzip_status,
-				'inactive_types' => Utils::get_number_of_issues( 'gzip', $this->gzip_status ),
+				'status'           => $this->gzip_status,
+				'use_cdn'          => $minify->get_cdn_status(),
+				'compression_type' => get_option( 'wphb_compression_type' ),
+				'inactive_types'   => Utils::get_number_of_issues( 'gzip', $this->gzip_status ),
 			)
 		);
 	}
@@ -1199,6 +1170,11 @@ class Dashboard extends Page {
 
 		$smush_enabled   = $this->is_smush_enabled();
 		$smush_installed = $this->is_smush_installed();
+		$can_activate    = is_main_site();
+
+		if ( is_multisite() ) {
+			$can_activate = ( is_main_site() && is_super_admin() ) || is_network_admin();
+		}
 
 		if ( $smush_enabled && $smush_installed ) {
 			$smush_data = get_option( 'smush_global_stats', $smush_data );
@@ -1207,13 +1183,12 @@ class Dashboard extends Page {
 		$this->view(
 			'dashboard/smush/meta-box',
 			array(
-				'activate_url'     => wp_nonce_url( 'plugins.php?action=activate&amp;plugin=wp-smushit/wp-smush.php', 'activate-plugin_wp-smushit/wp-smush.php' ),
-				'activate_pro_url' => wp_nonce_url( 'plugins.php?action=activate&amp;plugin=wp-smush-pro/wp-smush.php', 'activate-plugin_wp-smush-pro/wp-smush.php' ),
-				'can_activate'     => is_main_site() || is_network_admin(),
-				'is_active'        => $smush_enabled,
-				'is_installed'     => $smush_installed,
-				'smush_data'       => $smush_data,
-				'is_pro'           => $this->is_smush_pro,
+				'activate_url' => $this->smush_activation_url(),
+				'can_activate' => $can_activate,
+				'is_active'    => $smush_enabled,
+				'is_installed' => $smush_installed,
+				'smush_data'   => $smush_data,
+				'is_pro'       => $this->is_smush_pro,
 			)
 		);
 	}

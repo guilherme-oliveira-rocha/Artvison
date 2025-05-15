@@ -18,9 +18,13 @@ export default class Tabs extends React.Component {
 	/**
 	 * Share UI actions need to be performed manually for elements.
 	 * They should be done in this method.
+	 *
+	 * @see https://wpmudev.github.io/shared-ui/tabs/  For callback params.
 	 */
 	componentDidMount() {
-		SUI.tabs();
+		if ( ! this.props.sideTabs ) {
+			SUI.tabs();
+		}
 	}
 
 	/**
@@ -29,7 +33,7 @@ export default class Tabs extends React.Component {
 	 * @return {JSX.Element}  Select component.
 	 */
 	render() {
-		const menuItems = Object.values( this.props.menu ).map( ( el, id ) => {
+		const menuItems = Object.values( this.props.menu ).map( ( el ) => {
 			const active = 'undefined' !== typeof el.checked && el.checked;
 			return (
 				<Button
@@ -41,7 +45,8 @@ export default class Tabs extends React.Component {
 					aria-controls={ el.id + '-tab-content' }
 					aria-selected={ active }
 					tabIndex={ active ? '0' : '-1' }
-					key={ id }
+					key={ el.id }
+					onClick={ el.onClick }
 				/>
 			);
 		} );
@@ -59,7 +64,7 @@ export default class Tabs extends React.Component {
 					hidden={ ! active }
 					key={ id }
 				>
-					{ el.description && <div className="sui-description">{ el.description }</div> }
+					{ el.description && <div className="sui-description sui-margin-bottom">{ el.description }</div> }
 					{ el.content }
 				</div>
 			);
@@ -67,17 +72,23 @@ export default class Tabs extends React.Component {
 
 		return (
 			<div
-				className={ classNames( 'sui-tabs', {
-					'sui-tabs-flushed': this.props.flushed,
-				}, {
-					'sui-side-tabs': this.props.sideTabs,
-				} ) }
+				className={ classNames(
+					{ 'sui-tabs': ! this.props.sideTabs },
+					{ 'sui-tabs-flushed': this.props.flushed },
+					{ 'sui-side-tabs': this.props.sideTabs },
+					this.props.className,
+				) }
 			>
 				<div role="tablist" className="sui-tabs-menu">
 					{ menuItems }
 				</div>
-				<div className="sui-tabs-content">{ items }</div>
+				{ ! window.lodash.isEmpty( this.props.tabs ) &&
+					<div className="sui-tabs-content">{ items }</div> }
 			</div>
 		);
 	}
 }
+
+Tabs.defaultProps = {
+	tabs: {},
+};

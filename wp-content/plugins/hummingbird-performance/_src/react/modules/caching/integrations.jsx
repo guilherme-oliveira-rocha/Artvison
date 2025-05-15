@@ -26,6 +26,7 @@ import SettingsRow from '../../components/sui-box-settings/row';
 import Toggle from '../../components/sui-toggle';
 import Tooltip from '../../components/sui-tooltip';
 import Tag from '../../components/sui-tag';
+import {createInterpolateElement} from "@wordpress/element";
 
 /**
  * Integrations component.
@@ -151,6 +152,8 @@ class Integrations extends React.Component {
 					cf: response.cloudflare,
 					apo: response.apo,
 				} );
+
+				window.wphbMixPanel.disableFeature( 'Cloudflare_integration' );
 
 				window.WPHB_Admin.notices.show(
 					__( 'Cloudflare was disconnected successfully.', 'wphb' )
@@ -280,14 +283,9 @@ class Integrations extends React.Component {
 			this.state.links.wphbDirUrl + 'admin/assets/image/integrations/';
 
 		const tooltip = (
-			<Tooltip
-				text={ __(
-					'Cloudflare is connected for this domain.',
-					'wphb'
-				) }
-				data={ <Icon classes="sui-icon-check-tick sui-success" /> }
-				classes={ [ 'sui-tooltip-constrained' ] }
-			/>
+			<Tooltip text={ __( 'Cloudflare is connected for this domain.', 'wphb' ) } classes="sui-tooltip-constrained">
+				<Icon classes="sui-icon-check-tick sui-success" />
+			</Tooltip>
 		);
 
 		return (
@@ -455,6 +453,8 @@ class Integrations extends React.Component {
 			cacheByDeviceType = this.state.apo.settings.cache_by_device_type;
 		}
 
+		const purchaseUrl = 'https://dash.cloudflare.com/' + this.state.cf.accountId + '/' + this.state.cf.zoneName + '/speed/optimization/apo/purchase';
+
 		return (
 			<React.Fragment>
 				<p>
@@ -486,7 +486,7 @@ class Integrations extends React.Component {
 							}
 							onChange={ this.handleDevChkbxChange }
 							description={ __(
-								'This enables you to target visitors with cached content appropriate to their device. Once enabled, Cloudflare sends a CF-Device-Type HTTP header to your origin page with a value of either mobile, tablet or desktop for every request to specify the visitor’s device type. If your origin page responds with the appropriate content for that device type, Cloudflare caches the resource only for that specific device type. Note: changing the Cache by device type setting will purge the entire Couldflare cache for your zone.', 'wphb'
+								'This enables you to target visitors with cached content appropriate to their device. Once enabled, Cloudflare sends a CF-Device-Type HTTP header to your origin page with a value of either mobile, tablet or desktop for every request to specify the visitor’s device type. If your origin page responds with the appropriate content for that device type, Cloudflare caches the resource only for that specific device type. Note: changing the Cache by device type setting will purge the entire Cloudflare cache for your zone.', 'wphb'
 							) }
 						/>
 					</div>
@@ -494,18 +494,11 @@ class Integrations extends React.Component {
 
 				{ ! this.state.apo.purchased && (
 					<Notice
-						message={ sprintf(
-							/* translators: %1$s - opening a tag, %2$s - closing a tag */
-							__(
-								'Automatic Platform Optimization is a paid service and you need to purchase it to enable it. You can purchase it %1$shere%2$s.',
-								'wphb'
-							),
-							'<a href="https://dash.cloudflare.com/' +
-								this.state.cf.accountId +
-								'/' +
-								this.state.cf.zoneName +
-								'/speed/optimization/apo/purchase" target="_blank">',
-							'</a>'
+						message={ createInterpolateElement(
+							__( 'Automatic Platform Optimization is a paid service and you need to purchase it to enable it. You can purchase it <a>here</a>.', 'wphb'),
+							{
+								a: <a href={purchaseUrl} target="_blank"/>
+							}
 						) }
 					/>
 				) }
@@ -519,20 +512,17 @@ class Integrations extends React.Component {
 	 * @return {JSX.Element} Content.
 	 */
 	renderContent() {
-		const notice = sprintf(
-			/* translators: %1$s - opening a tag, %2$s - closing a tag */
-			__(
-				'Cloudflare is a Content Delivery Network (CDN) that sends traffic through its global network to automatically optimize the delivery of your site so your visitors can browse your site at top speeds. With the new Automatic Platform Optimization (APO), Cloudflare can also cache dynamic content and third-party scripts so the entire site is served from cache. Learn more about the integration %1$shere%2$s.',
-				'wphb'
-			),
-			'<a href="https://wpmudev.com/docs/wpmu-dev-plugins/hummingbird/#browser-cache" target="_blank">',
-			'</a>'
+		const notice = createInterpolateElement(
+			__('Cloudflare is a Content Delivery Network (CDN) that sends traffic through its global network to automatically optimize the delivery of your site so your visitors can browse your site at top speeds. With the new Automatic Platform Optimization (APO), Cloudflare can also cache dynamic content and third-party scripts so the entire site is served from cache. Learn more about the integration <a>here</a>.', 'wphb'),
+			{
+				a: <a href="https://wpmudev.com/docs/wpmu-dev-plugins/hummingbird/#browser-cache" target="_blank"/>
+			}
 		);
 
 		return (
 			<React.Fragment>
 				<h4>{ __( 'Overview', 'wphb' ) }</h4>
-				<p dangerouslySetInnerHTML={ { __html: notice } } />
+				<p>{notice}</p>
 
 				<h4>{ __( 'Status', 'wphb' ) }</h4>
 
@@ -568,10 +558,6 @@ class Integrations extends React.Component {
 	 * @return {JSX.Element}  Footer actions.
 	 */
 	renderFooter() {
-		if ( ! this.state.allowModify ) {
-			return null;
-		}
-
 		return (
 			<React.Fragment>
 				{ this.state.cf.connected && (
@@ -691,7 +677,7 @@ class Integrations extends React.Component {
 				<div className="sui-accordion-item-body">
 					<Box
 						loading={ this.state.loading }
-						hideHeader="true"
+						hideHeader={ true }
 						content={ this.renderContent() }
 						footerActions={ this.renderFooter() }
 					/>

@@ -207,7 +207,7 @@ class Wizard extends React.Component {
 			<Box
 				loading={ this.props.loading }
 				content={ this.getContent() }
-				hideHeader="true"
+				hideHeader= { true }
 				boxBodyClass="sui-no-padding"
 				footerActions={ this.getFooter() }
 			/>

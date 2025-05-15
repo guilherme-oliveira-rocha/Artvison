@@ -1,14 +1,14 @@
-=== Hummingbird – Optimize Speed, Enable Cache, Minify CSS & Defer Critical JS ===
-Plugin Name: Hummingbird – Optimize Speed, Enable Cache, Minify CSS & Defer Critical JS
-Version: 3.2.1
+=== Hummingbird - Cache & Page Speed Optimization for Core Web Vitals | Critical CSS | Minify CSS | Defer CSS Javascript ===
+Plugin Name: Hummingbird - Cache & Page Speed Optimization for Core Web Vitals | Critical CSS | Minify CSS | Defer CSS Javascript
+Version: 3.8.1
 Author: WPMU DEV
 Author URI: https://wpmudev.com/
 Contributors: WPMUDEV
-Tags: defer css javascript, cache, minify css, minify javascript, speed up wordpress, page cache, wordpress speed optimization, page speed, wordpress cache plugin, wordpress performance optimization, lazy load, performance optimization, seo, pagespeed, wp cache
+Tags: cache, critical css, javascript delay, minify css, defer css javascript, page cache, wordpress speed optimization, page speed, wordpress cache plugin, wordpress performance optimization, lazy load, performance optimization, seo, pagespeed, wp cache, delay javascript, brotli compression, generate critical css
 Requires at least: 5.2
-Tested up to: 5.8
-Requires PHP: 5.6
-Stable tag: 3.2.1
+Tested up to: 6.5
+Requires PHP: 7.4
+Stable tag: 3.8.1
 License: GPLv2
 License URI: http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
 
@@ -22,7 +22,7 @@ Hummingbird is brought to you by the WordPress speed specialists that created [S
 
 ### If PageSpeed Insights is making these speed recommendations Hummingbird can help:
 
-- Enable text compression - Use gzip to make your site fly.
+- Enable text compression - Use gzip to make your site fly (Brotli Compression via CDN included with Pro).
 - Preconnect to required origins - Use Hummingbird to establish earlier connections.
 - Preload key requests - Prioritize resources based on order.
 - Avoid enormous network payloads - Consider Lazy Load for comments or breaking up smaller posts.
@@ -31,6 +31,8 @@ Hummingbird is brought to you by the WordPress speed specialists that created [S
 - Minify CSS - Strip unused code from your CSS.
 - Minify JavaScript - Speed up the time it takes to parse your JS files.
 - Eliminate render-blocking resources - Move critical CSS and JS inline and defer all non-critical JS/CSS.
+- Delay JavaScript execution (Pro only) - Increase performance by delaying the loading of non-critical JS files and scripts until user interaction.
+- Automatically generate Critical CSS (Pro only) - Substantially boost page speed and UX by prioritizing above-the-fold content.
 - Defer unused CSS - Defer the loading of CSS not used for above-the-fold content.
 - Lazy Load offscreen images ([Smush free](https://wordpress.org/plugins/wp-smushit/) integration).
 
@@ -43,11 +45,12 @@ You’ll get faster loading pages, higher search rankings (SERP) and PageSpeed s
 - Scan and Fix – Get a scan of your site, find out what’s slowing it down, and use one-click performance improvements to make critical speed improvements.
 - World-class caching – A full caching suite to load pages faster with full-page, Gravatar, and browser cache tool.
 - Performance Reports – Pro tips for running your site at super speed.
-- Asset Optimization – Position, minify and combine Javascript, CSS, and Google Font files for top performance.
+- Asset Optimization – Position, minify and combine Javascript, CSS, and Google Font files for top performance. Test changes with built-in Safe Mode.
 - Better Rankings – Improve scores on Google PageSpeed Insights (SEO ranking factor), YSlow, Pingdom, and GTmetrix.
 - Increase Your Conversion Rate - Don’t keep visitors waiting: faster sites convert better.
 - GZIP Compression – Blazing-fast HTML, JavaScript, and stylesheet (CSS) transfer.
 - Configs – Set your preferred performance settings, save them as config, and instantly upload to any other site.
+- Font Optimization - Improve site speed, Core Web Vitals, and visual stability by preloading critical fonts and enabling fallbacks.
 
 ### Learn The Ropes With These Hands-On Hummingbird Tutorials
 
@@ -73,9 +76,9 @@ Make your site load even faster with Hummingbird’s complete set of cache tools
 
 ### Asset Optimization
 
-Did you know that the more files you add to your site’s header, the slower it will load? With Hummingbird, you can easily customize the load position of your CSS, JavaScript (defer CSS and Javascript), Google Fonts, and other files to increase your page speed.
+Did you know that the more files you add to your site’s header, the slower it will load? With Hummingbird, you can easily customize the load position of your CSS, JavaScript (defer CSS and Javascript), Fonts, and other files to increase your page speed.
 
-Quickly reorder, compress, and reposition files with Hummingbird’s minification feature. But play carefully – minification is a powerful tool (though if you need it, you can reset any changes you make in one click).
+Quickly reorder, compress, and reposition files with Hummingbird’s minification feature. Reset any changes you make in one click, or use Asset Optimization Safe Mode to test changes before pushing live.
 
 ### Transfer Data at Top Speed With GZIP
 
@@ -87,6 +90,10 @@ Sending zipped files is faster and can save you money on hosting. And don’t wo
 
 Hummingbird can be used to control your [Cloudflare](https://www.cloudflare.com/) browser cache and Automatic Platform Optimizations (APO) settings as well! Simply add your Cloudflare API key and configure away.
 
+### Font Optimization
+
+Boost site speed, Core Web Vitals, and the visual stability of pages for users with Hummingbird’s one-click font optimization features: **Preload Fonts,** which instructs browsers to preload essential fonts, and **Swap Web Fonts,** which applies a temporary fallback font until the primary one loads.
+
 ### Fully Compatible With Smush Image Optimization
 
 You can complement Hummingbird’s WordPress speed optimization features with our award-winning sister-plugin [Smush image optimization](https://wordpress.org/plugins/wp-smushit/). Smush compresses your images, giving your site less to load – and thus a faster load time. Hummingbird + Smush integrate perfectly together, and are the perfect match to speed up WordPress.
@@ -95,7 +102,17 @@ Compress, optimize (optimise), and fix PageSpeed performance with properly sized
 
 ### Save time with Hummingbird Configs
 
-Configs allow you to save your prefered Hummingbird configuration settings and apply them to your other sites in a few clicks. You can create unlimited configs.
+Configs allow you to save your preferred Hummingbird configuration settings and apply them to your other sites in a few clicks. You can create unlimited configs.
+
+### Delay Javascript Resources (Pro Only)
+
+Boost site performance dramatically by delaying the loading of JS files and third-party scripts until direct user interaction (e.g. scroll or click). Enjoy faster loading pages, improve web vitals, and ace your PageSpeed scores. 
+
+Activate in one click, includes user interaction timeout and the option to exclude critical files from being delayed. A paid WPMU DEV account (the developers of Hummingbird) is required to access this feature. You can check out our affordable plans [here](https://wpmudev.com/pricing/).
+
+### Generate Critical CSS (Pro Only)
+
+Maximize site speed and user experience by prioritizing only the CSS that matters most. The Generate Critical CSS feature intelligently generates and embeds critical CSS in the head of each page, giving priority to above-the-fold content and significantly improving loading speed. Updates to your critical CSS are automated with every site design change, and you can enable/disable with a click.
 
 = Faster Websites Rank Higher, Convert Better =
 
@@ -174,6 +191,10 @@ Membership also gets you all our premium WordPress plugins, including Smush Pro,
 
 Asset Optimization is a great way to speed up your site but moving, combining, using minify, and rearranging CSS and JavaScript (.JS) files can also mess with styling and break functionality. We recommend making incremental changes and testing your site as you go so you can undo the changes if something breaks. And remember, don’t panic. If something goes wrong you can start over with the click of a button :)
 
+= How can I report security issues or bugs? =
+
+We take plugin security incredibly seriously; if you have a bug or vulnerability to report, you can do so through the Patchstack Vulnerability Disclosure Program. It’s fast, easy, and you will be notified when the issue is fixed. [Report a vulnerability](https://patchstack.com/database/vdp/hummingbird-performance).
+
 == Screenshots ==
 
 1. Scan your site for optimization tips and tricks.
@@ -182,6 +203,196 @@ Asset Optimization is a great way to speed up your site but moving, combining, u
 4. Use suggestions to make improvements and speed up your site.
 
 == Changelog ==
+
+= 3.8.1 ( 2024-05-02 ) =
+- Fix: Font optimization causes issue with RSS feeds
+- Fix: PHP errors and warnings
+
+= 3.8.0 ( 2024-04-29 ) =
+- New: Load local fonts early with font preloading
+- New: Font swapping to ensure that text remains visible while webfont is downloading
+- Improvement: Better caching compatibility with popular third-party plugins
+- Improvement: Auto-populate CDN and web font domains in Advanced Tools > Preconnect
+- Fix: PHP warnings
+- Fix: Delay JS compatibility issue with Avada
+- Fix: Asset optimization bug fixes
+
+= 3.7.4 ( 2024-03-27 ) =
+- Improvement: Security hardening
+
+= 3.7.3 ( 2024-03-21 ) =
+- New: Replaced deprecated FID check with INP in performance test
+
+= 3.7.2 ( 2024-01-16 ) =
+- New: Use static IPs for Critical CSS service
+- Improvement: Ignore missing CSS files when generating Critical CSS
+- Fix: Avoid calling the Critical CSS service too frequently
+
+= 3.7.1 ( 2023-12-20 ) =
+- Improvement: Stability improvements
+
+= 3.7.0 ( 2023-12-06 ) =
+- Fix: Critical CSS and Delay JS causing validation errors with AMP
+- Fix: Compatibility warning with PHP 8.3
+- Improvement: Better analytics
+
+= 3.6.1 ( 2023-11-06 ) =
+- Fix: Minify module generating CSS file with HTML inside, when source CSS file not found
+
+= 3.6.0 ( 2023-10-09 ) =
+- New: Generate Critical CSS for your pages to address render-blocking resource warnings and eliminate unused CSS
+- Improvement: Add comments for all translation strings that have placeholders in them
+- Improvement: Set minimum required PHP version to 7.4
+- Fix: PHP errors and warnings
+- Fix: Asset Optimization doesn't save settings on Manual Mode
+- Fix: Delay JS conflict with Hub Client
+
+= 3.5.0 ( 2023-06-27 ) =
+- New: Delay JS - Delay the execution of scripts to prioritize page rendering
+- Improvement: PHP 8.2 Compatibility
+- Fix: Accessibility Improvements
+- Fix: Security audit and improvements
+- Fix: Filter panel overlaps result while scrolling down on Asset Optimization page
+- Fix: Asset Optimization doesn't save manual settings in some situations
+- Fix: Minor improvements in code and copy
+
+= 3.4.7 ( 2023-06-13 ) =
+- Improvement: Performance improvements
+
+= 3.4.6 ( 2023-04-17 ) =
+- Improvement: Switch from React development build to production build
+- Fix: Asset Optimization stats showing NaN on non-English sites
+- Fix: HB CDN automatically excluding two files from Themeco Pro theme
+- Fix: Hummingbird performance test results accordion not opening
+- Fix: Whitelabel issue with "What's New" modal
+- Fix: Minor compatibility issues with PHP 8.2
+
+= 3.4.5 ( 2023-03-28 ) =
+- Fix: Incorrect post types getting deleted
+
+= 3.4.4 ( 2023-03-15 ) =
+- Improvement: Minor bug fixes and improvements
+
+= 3.4.3 ( 2023-02-23 ) =
+- Fix: Security fix
+
+= 3.4.2 ( 2023-02-16 ) =
+- Fix: JS error in configs
+
+= 3.4.1 ( 2023-02-16 ) =
+- Improvement: Security hardening
+- Fix: Issue when upgrading from version 2.7.3
+
+= 3.4.0 ( 2022-11-28 ) =
+- New: Asset optimization safe mode
+- New: React-based asset optimization module
+- New: Compatibility module with WPMU DEV hosting FastCGI feature
+- New: Map generated filenames to actual filenames on Manual Asset Optimisation
+- New: Replace Google fonts with Bunny fonts for GDPR compliance
+- Fix: Performance module showing older version of the report after scan
+- Fix: Page cache preloader icon
+- Fix: Uptime compatibility with WPMU DEV free Hub
+- Fix: Smush activation links on MU
+- Fix: Dashboard Asset Optimization Stats are different from the AO Summary Details
+- Fix: Miscellaneous PHP warnings and errors
+
+= 3.3.7 ( 2022-11-17 ) =
+
+- Improvement: Code and compatibility improvements
+
+= 3.3.6 ( 2022-11-01 ) =
+
+- Enhance: Security hardening
+- Enhance: WP 6.1 compatibility
+
+= 3.3.5 ( 2022-10-04 ) =
+
+- Enhance: Membership status check
+
+= 3.3.4 ( 2022-06-16 ) =
+
+- Enhance: Split out JavaScript libraries into smaller files
+- Enhance: Reports compatibility with Defender masking feature
+- Enhance: Cleanup on uninstall on network installs
+- Enhance: Page cache compatibility with Defender security headers
+- Fix: Usage tracking option on network installs
+- Fix: Setup module logic on plugin activation
+- Fix: Inline limits in asset optimization
+- Fix: Weekly performance report sometimes sent out twice
+- Fix: Settings link on Plugins page
+- Fix: Comment on-click lazy loading
+- Fix: Translation link URL
+- Fix: Tooltip showing by default on 'Checking files' asset optimization modal
+- Fix: Redis module not always being able to write to wp-config.php file
+- Fix: Skip onboarding wizard if a config has been applied
+- Fix: Rename "Basic" config to "Default"
+- Fix: Tutorials scripts loading on all pages
+
+= 3.3.3 ( 2022-05-12 ) =
+
+- New: Set the number of comments to preload in lazy loading module
+- Enhance: Clean up after uninstalling on multisite
+- Enhance: Remove duplicate 'wphb_page_cache_cleared' action in favour of 'wphb_clear_cache_url'
+- Enhance: Sanitize input fields in Configs module
+- Enhance: Compatibility with Weglot plugin
+- Fix: PHP undefined array key warnings
+- Fix: Fatal error when clearing cache in certain conditions
+- Fix: Toggling Uptime from WPMU DEV hub
+- Fix: Clear cache button not white labeled
+- Fix: Onboarding setup wizard summary layout
+- Fix: Onboarding setup wizard tracking option on multisite
+- Fix: Smush upsell block logic
+- Fix: Tutorials on dashboard page cannot be hidden
+- Fix: Duplicate users in notifications modal
+- Fix: Errors when offloading ES6 modules with import statements to CDN
+- Fix: Clear cache button (admin bar) logic on network installs
+- Fix: Cloudflare zone selector not working
+- Fix: High contrast notice in comments lazy load module
+- Fix: Lazy loading WooCommerce reviews
+
+= 3.3.2 ( 2022-03-14 ) =
+
+- Fix: XSS vulnerability
+
+= 3.3.1 ( 2022-02-24 ) =
+
+- New: Onboarding setup wizard
+- Enhance: Support for WPMU DEV Hub
+- Enhance: Add a unique salt when enabling Redis integration
+- Enhance: "How does it work" section in asset optimization module
+- Fix: Incorrect detection of Cloudflare APO status
+- Fix: Missing action buttons on Integrations page in sub sites
+- Fix: Page cache not clearing when caching is disabled on subsites
+- Fix: Duplicate ID elements on dashboard page
+- Fix: Inability to auto start asset optimization scan from dashboard page on free version
+- Fix: Remove global configs from network subsites
+- Fix: An invalid form control with name='cloudflare-email' is not focusable error
+- Fix: Documentation link in Notifications module
+- Fix: Translation strings
+- Fix: Styles for Select2 textarea elements
+
+= 3.3.0 ( 2022-01-11 ) =
+
+- New: Font optimization is now part of automatic asset optimization mode
+- New: Notification email designs
+- New: Plugin icon
+- Enhance: Add file size limits for inlining assets in asset optimization module
+- Enhance: Status of assets in asset optimization module
+- Enhance: Updating of exclusion list in asset optimization UI
+- Enhance: Page types exclusions in page caching
+- Enhance: PHP 8.1 compatibility
+- Fix: Clearing page cache on subsites in a network sub-directory installs
+- Fix: Page caching module not showing for site admins
+- Fix: Browser caching module not showing on subsites with Cloudflare integration
+- Fix: Cached files counter when purging cache
+- Fix: Infinite loop with orphaned assets when page cache integrations are enabled
+- Fix: Cases when asset optimization breaks CSS with background SVG images
+- Fix: Asset optimization auto selecting files in auto mode
+- Fix: Cloudflare integration when a site is installed in a sub-folder
+- Fix: Missing notification modules and translations
+- Fix: Errors when purging Varnish cache
+- Fix: Fatal error when scheduling database reports
+- Fix: Fatal error with WP Ultimo 2.x
 
 = 3.2.1 ( 2021-11-24 ) =
 
@@ -296,91 +507,6 @@ Asset Optimization is a great way to speed up your site but moving, combining, u
 - Fix: Overwriting network admin settings in advanced tools
 - Fix: Page cache clearing taking too long during post edit
 - Fix: Cloudflare browser caching settings not syncing with Hub
-
-= 2.7.3 ( 2021-04-12 ) =
-
-- New: Tutorials module
-- New: LiteSpeed instructions for Browser Caching module
-- Enhance: Update the Plugin Health module UI/UX
-- Enhance: REST API endpoints now require at least edit_posts capability
-- Enhance: Uptime reporting description
-- Enhance: Improve export/import description
-- Enhance: CSS above the fold description
-- Enhance: Privacy mode detection in GZIP compression module
-- Enhance: Asset Optimization UI/UX
-- Enhance: Asset Optimization processing of compressed assets
-- Enhance: Asset Optimization switching between modes
-- Enhance: Support for RGBA when optimizing CSS files
-- Enhance: Fallback to siteurl if HTTP_HOST is not defined when clearing cache
-- Fix: Recursive loops in Page Caching preloader
-- Fix: Asset Optimization not rewriting relative paths for inlined assets
-- Fix: Remove unused expiry time option for IIS servers in browser caching module
-- Fix: Page caching not properly detecting Asset Optimization CDN status
-- Fix: Page caching clearing all cache when static page is set as home page
-- Fix: Selects overlapping other DOM elements
-- Fix: PHP notice when re-checking browser caching status
-- Fix: PHP notice for undefined index db_frequency
-- Fix: Performance test notices on mobile
-
-= 2.7.2 ( 2021-02-25 ) =
-
-- New: Redis support for unix sockets
-- New: Select database for Redis integration
-- New: Add support for WOFF2 fonts in Browser Caching module
-- New: Support for LiteSpeed server in Browser Caching module
-- New: Clear Cloudflare cache from admin bar
-- Enhance: Asset Optimization notifications
-- Enhance: Asset Optimization support for RTL assets
-- Enhance: Integration with Varnish cache
-- Fix: Asset Optimization combining assets on Basic mode
-- Fix: Asset Optimization not being able to inline remote assets in rare cases
-- Fix: Asset Optimization duplicating inline scripts during processing
-- Fix: Asset Optimization improve handling of core WordPress scripts
-- Fix: Asset Optimization compatibility with Oxygen builder
-- Fix: Asset Optimization compatibility with Bimber theme
-- Fix: Browser Caching module overwriting individual expiry values
-- Fix: High contrast icons in Asset Optimization module
-- Fix: 500 server error when clearing Varnish cache from the dashboard
-- Fix: Tabs navigation on mobile devices
-
-= 2.7.1 ( 2021-01-18 ) =
-
-- New: Integration with ACF - page cache will be auto purged on changes in ACF options
-- New: Select what cache to clear from the dashboard page
-- Enhance: PHP 8.0 compatibility
-- Enhance: Asset Optimization handling expired assets
-- Enhance: Allow hiding Asset Optimization modals
-- Enhance: Remove unused assets from plugin package
-- Enhance: Plugin health module descriptions
-- Enhance: Performance in wp-admin
-- Enhance: jQuery 3 compatibility
-- Enhance: Compatibility with object cache
-- Fix: Cloudflare integration breaking Gzip server value on the Hub
-- Fix: Compatibility issues with Themeco Pro theme page builder
-- Fix: Asset Optimization not respecting order for some inlined assets
-- Fix: Do not auto enable Asset Optimization on new subsites in a network
-- Fix: Disable Asset Optimization on login pages
-- Fix: Cloudflare integration wizard UI
-- Fix: Cloudflare re-check status returning incorrect values
-- Fix: Browser cache returning false status
-- Fix: Page caching status on subsites
-- Fix: Notices on image optimization meta box on the dashboard page
-- Fix: Toggling page caching module from Hub
-
-= 2.7.0 ( 2020-11-12 ) =
-
-- New: Site Health module
-- New: Clear page cache for all subsites from network admin
-- Enhance: Asset Optimization on WPMU DEV hosting staging
-- Enhance: Asset Optimization "How does it work?" section
-- Enhance: Gzip configuration UI/UX
-- Enhance: White labelling support
-- Enhance: Nginx instructions for browser caching and gzip compression
-- Fix: Rare instance of fatal PHP error in Page Caching module in multisite
-- Fix: Database cleanup removing drafts that are not from WordPress posts/pages
-- Fix: Cloudflare configuration wizard
-- Fix: Upgrade page buttons hover state
-- Fix: Elements with non-unique IDs in Asset Optimization module
 
 [Changelog for previous versions](https://wpmudev.com/project/wp-hummingbird/#view-changelog).
 

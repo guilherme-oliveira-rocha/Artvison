@@ -5,6 +5,8 @@
  * @package Hummingbird
  */
 
+use Hummingbird\Core\Utils;
+
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
@@ -49,22 +51,22 @@ if ( ! defined( 'ABSPATH' ) ) {
 					<span class="sui-progress-state-text"><?php esc_html_e( 'Looking for files...', 'wphb' ); ?></span>
 				</div>
 
-				<?php if ( ! \Hummingbird\Core\Utils::is_member() ) : ?>
+				<?php if ( ! Utils::is_member() ) : ?>
 					<?php
 					$this->admin_notices->show_inline(
 						esc_html__( 'Did you know the Pro version of Hummingbird comes up to 2x better compression and a CDN to store your assets on? Get it as part of a WPMU DEV membership.', 'wphb' ),
 						'info',
-						sprintf( /* translators: %1$s - opening a tag, %2$s - </a> */
+						sprintf( /* translators: %1$s - opening a tag, %2$s -  closing a tag */
 							esc_html__( '%1$sLearn more%2$s', 'wphb' ),
-							'<a href="' . esc_url( \Hummingbird\Core\Utils::get_link( 'plugin' ) ) . '" target="_blank">',
+							'<a href="' . esc_url( Utils::get_link( 'plugin' ) ) . '" target="_blank">',
 							'</a>'
 						)
 					);
 					?>
 				<?php endif; ?>
 
-				<?php $cdn_status = \Hummingbird\Core\Utils::get_module( 'minify' )->get_cdn_status(); ?>
-				<?php if ( ! is_multisite() && \Hummingbird\Core\Utils::is_member() ) : ?>
+				<?php $cdn_status = Utils::get_module( 'minify' )->get_cdn_status(); ?>
+				<?php if ( ! is_multisite() && Utils::is_member() ) : ?>
 					<form method="post" id="enable-cdn-form">
 						<div class="sui-border-frame">
 							<label for="enable_cdn" class="sui-toggle">
@@ -82,17 +84,10 @@ if ( ! defined( 'ABSPATH' ) ) {
 							</label>
 						</div>
 					</form>
-				<?php elseif ( is_multisite() && \Hummingbird\Core\Utils::is_member() ) : ?>
+				<?php elseif ( is_multisite() && Utils::is_member() ) : ?>
 					<input type="checkbox" aria-hidden="true" name="enable_cdn" id="enable_cdn" <?php checked( $cdn_status ); ?> style="display: none" hidden>
 				<?php endif; ?>
 			</div>
-
-			<?php if ( ! apply_filters( 'wpmudev_branding_hide_branding', false ) ) : ?>
-				<div class="sui-box-footer sui-content-center sui-flatten sui-spacing-bottom--0">
-					<img class="sui-image sui-no-margin-bottom" alt="" src="<?php echo esc_url( WPHB_DIR_URL . 'admin/assets/image/hb-graphic-minify-summary.png' ); ?>"
-						srcset="<?php echo esc_url( WPHB_DIR_URL . 'admin/assets/image/hb-graphic-minify-summary.png' ); ?> 1x, <?php echo esc_url( WPHB_DIR_URL . 'admin/assets/image/hb-graphic-minify-summary@2x.png' ); ?> 2x">
-				</div>
-			<?php endif; ?>
 		</div>
 	</div>
 

@@ -12,12 +12,10 @@ import './style.scss';
 /**
  * Functional List component.
  *
- * @param elements.elements
- * @param {Object} elements
- * @param {Object} header
- * @param {Array} Extra classes.
- * @param elements.header
- * @param elements.extraClasses
+ * @param {Object} props              Component props.
+ * @param {Object} props.elements
+ * @param {Object} props.header
+ * @param {Array}  props.extraClasses Extra classes.
  * @return {*} List component.
  * @class
  */

@@ -5,83 +5,126 @@
 @import "../../../scss/common/mixins";
 
 @include body-class(true) {
-
-  .box-minification-assets-auto {
+  /**
+   * Common between both auto and manual modes.
+   */
+  div[class*='box-minification-assets-'] {
     .sui-box-header .sui-actions-right > span:first-of-type {
       margin-right: 10px;
     }
 
-    .wphb-minification-files {
-      margin-left: -30px;
-      margin-right: -30px;
+    .sui-box-body > .sui-actions {
+      float: right;
+      font-size: 13px;
+      line-height: 40px;
+
+      .sui-icon-info {
+        margin-right: 5px;
+        position: relative;
+        top: 1px;
+        &:before { color: palette( blue, default ); }
+      }
+    }
+
+    .sui-box-builder.sui-flushed { margin-top: 30px; }
+  }
+
+  /**
+   * Automatic mode.
+   */
+  .box-minification-assets-auto .sui-box-builder.sui-flushed {
+    .sui-builder-field {
       padding: 30px;
+      align-items: flex-start;
 
-      .sui-box { box-shadow: 0 2px 7px 0 rgba(0,0,0,0.05) }
+      &:last-of-type { margin-bottom: 0; }
 
-      .sui-box.wphb-close-section {
+      &.wphb-close-section {
         box-shadow: none;
-        border: 1px solid #DDDDDD;
-        background-color: #F8F8F8;
+        border: 1px solid palette( gray, lighter );
+        background-color: palette( silver, light );
 
-        .sui-box-header { border-bottom: 0; }
-
-        .wphb-ao-type-icon { background-color: #AAAAAA; }
-        .wphb-ao-type-title strong { color: #888888; }
+        .sui-builder-field-label:first-child > [class^='sui-icon-'] {
+          background-color: palette( silver, medium );
+        }
+        strong { color: palette( gray, light ); }
       }
 
-      .sui-box .sui-box-header {
-        padding: 30px;
-        align-items: flex-start;
+      @include bp(tablet) {
+        flex-wrap: wrap;
+      }
+    }
 
-        @include bp(phone-large) {
-          flex-wrap: wrap;
-          .sui-actions-right { order: 3; }
+    .sui-builder-field-label {
+      flex-basis: 260px;
+
+      &:first-child > [class^='sui-icon-'] {
+        background-color: palette( blue, default );
+        width: 31px;
+        height: 30px;
+        border-radius: 5px;
+        margin-right: 10px;
+        margin-left: 0 !important;
+
+        &:before {
+          color: palette( mono, white );
+          line-height: 30px;
         }
       }
-    }
 
-    .wphb-ao-type-icon {
-      width: 31px;
-      height: 30px;
-      background-color: #17A8E3;
-      border-radius: 5px;
-      margin: -4px 10px 0 0;
-    }
-
-    .sui-icon-hummingbird,
-    .sui-icon-speed-optimize {
-      padding: 1px 8px;
-      &:before { color: #fff !important }
-    }
-
-    .wphb-ao-type-title {
-      display: flex;
-      align-items: flex-start;
-      flex-basis: 235px;
-      @include bp(phone-large) {
-        flex-basis: auto;
-      }
-
-      strong {
-        font-size: 14px;
-        line-height: 19px;
-        margin-right: 5px;
-      }
-
-      .sui-tag {
-        margin-right: 10px;
-      }
+      .sui-tag, strong { margin-right: 10px; }
     }
 
     small {
-      color: #AAAAAA;
-      flex-basis: 100%;
+      color: palette( silver, medium );
       margin: 0 30px 0 0;
+      flex-basis: 100%;
+      flex-shrink: 2;
 
-      @include bp(phone-large) {
+      @include bp(tablet) {
         flex-basis: 100%;
         margin: 10px 0 0 0;
         order: 5;
+      }
+    }
+  }
+
+  /**
+   * Manual mode.
+   */
+  .box-minification-assets-manual .sui-box-builder.sui-flushed {
+    .sui-box.sui-box-sticky {
+      margin: 0;
+
+      &.wphb-expanded {
+        .sui-button-icon.sui-button-outlined {
+          border-color: #888;
+          background-color: #888;
+          color: #fff;
+        }
+      }
+
+      &:not(.wphb-expanded) {
+        .sui-box-header { border-bottom: 0; }
+        .sui-box-body,
+        .sui-box-footer { display: none; }
+      }
+
+      // Fix item alignment.
+      .sui-actions-right > .sui-tooltip { display: flex; }
+    }
+
+    .sui-notice-warning {
+      margin-top: 30px;
+      margin-bottom: 25px;
+    }
+
+    .sui-builder-fields > .sui-form-field {
+      margin: 25px 0 5px;
+      padding-left: 20px;
+
+      @include media(max-width, md) {
+        padding-left: 15px;
       }
     }
   }

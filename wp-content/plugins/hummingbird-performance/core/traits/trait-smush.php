@@ -126,4 +126,48 @@ trait Smush {
 		return false;
 	}
 
+	/**
+	 * Returns true if smush is installed and is pro version, esle returns false.
+	 *
+	 * @since 3.4.0
+	 *
+	 * @return bool
+	 */
+	private function is_smush_pro() {
+		if ( ! $this->is_smush_pro ) {
+			// Calling is_smush_installed() sets $is_smush_pro property accordingly.
+			$this->is_smush_installed();
+		}
+
+		return $this->is_smush_pro;
+	}
+
+	/**
+	 * Provides the activation url for Smush plugin.
+	 *
+	 * @since 3.4.0
+	 *
+	 * @param string|null $version    Can be pro, free or null.
+	 * @param bool        $with_nonce Should url include nonce.
+	 *
+	 * @return string
+	 */
+	public function smush_activation_url( $version = null, $with_nonce = true ) {
+		$is_pro = false;
+
+		if ( ! in_array( $version, array( 'free', 'pro' ), true ) ) {
+			$is_pro = $this->is_smush_pro();
+		} elseif ( 'pro' === $version ) {
+			$is_pro = true;
+		}
+
+		$nonce_action = $is_pro ? 'activate-plugin_wp-smush-pro/wp-smush.php' : 'activate-plugin_wp-smushit/wp-smush.php';
+		$path         = $is_pro ?
+			'plugins.php?action=activate&amp;plugin=wp-smush-pro/wp-smush.php' :
+			'plugins.php?action=activate&amp;plugin=wp-smushit/wp-smush.php';
+		$url          = network_admin_url( $path );
+
+		return $with_nonce ? wp_nonce_url( $url, $nonce_action ) : $url;
+	}
+
 }

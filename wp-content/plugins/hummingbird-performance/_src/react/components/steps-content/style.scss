@@ -52,4 +52,13 @@
     }
   }
 
+  .wphb-file-types-tabs [role="tabpanel"] {
+    padding: 20px;
+    border: 1px solid #E6E6E6;
+    border-radius: 4px;
+
+    @media (min-width: 783px) {
+      padding: 30px;
+    }
+  }
 }

@@ -1,4 +1,5 @@
 /* global WPHB_Admin */
+/* global wphbMixPanel */
 
 import Fetcher from '../utils/fetcher';
 import { getLink } from '../utils/helpers';
@@ -33,11 +34,12 @@ import { getLink } from '../utils/helpers';
 				 * @since 2.5.0
 				 */
 				const tracking = document.getElementById( 'tracking' );
-				if ( tracking && true === tracking.checked ) {
-					WPHB_Admin.Tracking.optIn();
-				}
 
-				Fetcher.settings.saveSettings( form_data ).then( () => {
+				Fetcher.settings.saveSettings( form_data ).then( ( response ) => {
+					if ( tracking && true === tracking.checked && response.isMixpanelValueUpdated ) {
+						wphbMixPanel.optIn();
+					}
+
 					WPHB_Admin.notices.show();
 				} );
 

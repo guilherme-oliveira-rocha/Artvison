@@ -47,7 +47,10 @@ class Housekeeper {
 			$instance = Minify_Group::get_instance_by_post_id( $group->ID );
 			if ( ( $instance instanceof Minify_Group ) && $instance->is_expired() && $instance->file_id ) {
 				$instance->delete_file();
-				wp_delete_post( $instance->file_id, true );
+				if ( 'wphb_minify_group' === get_post_type( $instance->file_id ) ) {
+					Utils::get_module( 'minify' )->log( 'In Housekeeper Deleting the minify group file id : ' . $instance->file_id );
+					wp_delete_post( $instance->file_id, true );	
+				}
 				$maybe_clear_page_cache = true;
 			}
 		}

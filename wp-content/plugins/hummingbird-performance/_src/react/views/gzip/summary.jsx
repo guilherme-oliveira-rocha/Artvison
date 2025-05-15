@@ -19,6 +19,7 @@ import Button from '../../components/sui-button';
 import Notice from '../../components/sui-notice';
 import Tag from '../../components/sui-tag';
 import Tooltip from '../../components/sui-tooltip';
+import {createInterpolateElement} from "@wordpress/element";
 
 /**
  * GzipSummary component.
@@ -109,6 +110,17 @@ class GzipSummary extends React.Component {
 	}
 
 	/**
+	 * Track MP event.
+	 *
+	 * @since 3.6.0
+	 *
+	 * @param {Object} e
+	 */
+	trackMPEvent = ( e ) => {
+		window.wphbMixPanel.track( 'check_brotli_support' );
+	};
+
+	/**
 	 * Get content for the component.
 	 *
 	 * @return {Object}  Module content.
@@ -183,6 +195,16 @@ class GzipSummary extends React.Component {
 					'wphb'
 				);
 			}
+
+			// Replace notice if CDN is enabled.
+			if ( ( false === this.props.data.is_white_labeled && true === this.props.data.cdn ) || 'br' === this.props.data.compression_type ) {
+				text = createInterpolateElement(
+				__('Brotli Compression is active and working well via CDN, for enhanced performance in supported browsers. For browsers that don’t support Brotli, we’ll automatically use GZip instead. <a>Check browser support here</a>.', 'wphb'),
+				{
+					a: <a onClick={this.trackMPEvent} href="https://caniuse.com/brotli" target='_blank'/>
+				}
+			);
+			}
 		}
 
 		// Build the items array.
@@ -228,16 +250,12 @@ class GzipSummary extends React.Component {
 				);
 			}
 
-			const tagComponent = <Tag value={ label } type={ tag } />;
-
 			return {
 				label: labelData,
 				details: (
-					<Tooltip
-						text={ tooltipText }
-						data={ tagComponent }
-						classes={ [ 'sui-tooltip-constrained', 'sui-tooltip-top-right-mobile' ] }
-					/>
+					<Tooltip text={ tooltipText } classes={ [ 'sui-tooltip-constrained', 'sui-tooltip-top-right-mobile' ] }>
+						<Tag value={ label } type={ tag } />
+					</Tooltip>
 				),
 			};
 		} );

@@ -12,6 +12,11 @@ const methods = [ 'get', 'post', 'put', 'delete' ];
  * HB API class.
  *
  * Uses jQuery.ajax().
+ *
+ * @property {Function} get    GET request.
+ * @property {Function} post   POST request.
+ * @property {Function} put    PUT request.
+ * @property {Function} delete DELETE request.
  */
 export default class HBAPIFetch {
 	/**
@@ -27,7 +32,7 @@ export default class HBAPIFetch {
 	 * Setup AJAX endpoints.
 	 *
 	 * @param {string} method
-	 * @return {function(*=, *=): *} Response.
+	 * @return {function(*=, *=): Promise<*>} Response.
 	 * @private
 	 */
 	_setupAjaxAPI( method ) {

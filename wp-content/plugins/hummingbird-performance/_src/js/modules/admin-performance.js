@@ -19,26 +19,6 @@ import PerfScanner from '../scanners/PerfScanner';
 
 			this.wphbSetInterval();
 
-			document.onkeyup = function( e ) {
-				clearInterval( self.key_timer );
-				self.wphbSetInterval();
-				e = e || event;
-				self.pressedKeys.push( e.keyCode );
-				const count = self.pressedKeys.length;
-				if ( count >= 2 ) {
-					// Get the previous key pressed. If they are H+B, we'll display the error
-					if (
-						66 === self.pressedKeys[ count - 1 ] &&
-						72 === self.pressedKeys[ count - 2 ]
-					) {
-						const errorDetails = document.getElementById(
-							'wphb-error-details'
-						);
-						errorDetails.style.display = 'block';
-					}
-				}
-			};
-
 			// Init scanner.
 			this.scanner = new PerfScanner( 100, 0 );
 
@@ -104,13 +84,13 @@ import PerfScanner from '../scanners/PerfScanner';
 
 				google.charts.setOnLoadCallback( () => {
 					this.drawChart(
-						wphbHistoricFieldData.fid,
-						'first_input_delay'
+						wphbHistoricFieldData.inp,
+						'interaction_to_next_paint'
 					);
 					$( window ).resize( () =>
 						this.drawChart(
-							wphbHistoricFieldData.fid,
-							'first_input_delay'
+							wphbHistoricFieldData.inp,
+							'interaction_to_next_paint'
 						)
 					);
 				} );

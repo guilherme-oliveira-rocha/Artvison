@@ -12,6 +12,7 @@
  * @var bool   $logging       Logging status.
  * @var string $logs_link     Link to log file.
  * @var string $path_url      URL to the log file.
+ * @var bool   $safe_mode     Safe mode status.
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -161,17 +162,13 @@ $is_site_cdn_enabled = $cdn_status && $is_member;
 
 <?php if ( ! $is_member ) : ?>
 	<div class="sui-box-settings-row sui-upsell-row">
-		<img class="sui-image sui-upsell-image"
-			src="<?php echo esc_url( WPHB_DIR_URL . 'admin/assets/image/hummingbird-upsell-minify.png' ); ?>"
-			srcset="<?php echo esc_url( WPHB_DIR_URL . 'admin/assets/image/hummingbird-upsell-minify@2x.png' ); ?> 2x"
-			alt="<?php esc_attr_e( 'WP Smush free installed', 'wphb' ); ?>">
 		<?php
 		$this->admin_notices->show_inline(
 			sprintf( /* translators: %s: upsell modal href link */
-				__( "With our pro version of Hummingbird you can super-compress your files and then host them on our blazing-fast CDN. Get CDN as part of a WPMU DEV membership with 24/7 support and lots of handy site management tools.  <a href='%s' target='_blank'>Try Pro for FREE today!</a>", 'wphb' ),
+				__( "With our pro version of Hummingbird you can super-compress your files and then host them on our blazing-fast CDN. Get CDN as part of a WPMU DEV membership with 24/7 support and lots of handy site management tools.  <a href='%s' style='color: #8d00b1;font-weight: bold;' target='_blank'>UNLOCK NOW WITH PRO!</a>", 'wphb' ),
 				\Hummingbird\Core\Utils::get_link( 'plugin', 'hummingbird_assetoptimization_settings_upsell_link' )
 			),
-			'sui-upsell-notice'
+			'purple'
 		);
 		?>
 	</div><!-- end sui-upsell-row -->
@@ -243,7 +240,7 @@ $is_site_cdn_enabled = $cdn_status && $is_member;
 		</span>
 	</div>
 	<div class="sui-box-settings-col-2">
-		<a href="<?php echo esc_url( wp_nonce_url( add_query_arg( 'disable', 'true' ), 'wphb-disable-minification' ) ); ?>" class="sui-button sui-button-ghost" onclick="WPHB_Admin.Tracking.disableFeature( 'Asset Optimization' )">
+		<a href="<?php echo esc_url( wp_nonce_url( add_query_arg( 'disable', 'true' ), 'wphb-disable-minification' ) ); ?>" class="sui-button sui-button-ghost" onclick="wphbMixPanel.disableFeature( 'Asset Optimization' )">
 			<?php esc_html_e( 'Deactivate', 'wphb' ); ?>
 		</a>
 		<span class="sui-description"><?php esc_html_e( 'Note: This will not remove any files, they will just go back to their original, unoptimized state.', 'wphb' ); ?></span>

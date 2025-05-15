@@ -20,7 +20,9 @@ $this->do_meta_boxes( 'main' ); ?>
 <div class="sui-row">
 	<div class="sui-col-lg-6">
 		<?php $this->do_meta_boxes( 'box-dashboard-left' ); ?>
-		<div id="wphb-dashboard-configs"></div>
+		<?php if ( ! is_multisite() || is_network_admin() ) : ?>
+			<div id="wphb-dashboard-configs"></div>
+		<?php endif; ?>
 	</div>
 	<div class="sui-col-lg-6"><?php $this->do_meta_boxes( 'box-dashboard-right' ); ?></div>
 </div>
@@ -83,21 +85,18 @@ $this->do_meta_boxes( 'main' ); ?>
 		</div>
 	</div>
 	<div class="sui-cross-sell-bottom">
-		<h3><?php esc_html_e( 'Your All-in-One WordPress Platform', 'wphb' ); ?></h3>
-		<p><?php esc_html_e( 'Pretty much everything you need for developing and managing WordPress based websites, and then some.', 'wphb' ); ?></p>
+		<h3><?php esc_html_e( 'WPMU DEV - Your WordPress Toolkit', 'wphb' ); ?></h3>
+		<p><?php esc_html_e( 'Pretty much everything you need for developing and managing WordPress based websites, and then some more.', 'wphb' ); ?></p>
 
-		<a class="sui-button sui-button-green" href="<?php echo esc_url( Utils::get_link( 'wpmudev', 'hummingbird_footer_upgrade_button' ) ); ?>" target="_blank">
+		<a class="sui-button sui-button-blue" href="<?php echo esc_url( Utils::get_link( 'wpmudev', 'hummingbird_footer_upgrade_button' ) ); ?>" target="_blank">
 			<?php esc_html_e( 'Learn more', 'wphb' ); ?>
 		</a>
-
-		<img class="sui-image"
-			src="<?php echo esc_url( WPHB_DIR_URL . 'admin/assets/image/dev-team.png' ); ?>"
-			srcset="<?php echo esc_url( WPHB_DIR_URL . 'admin/assets/image/dev-team@2x.png' ); ?> 2x"
-			alt="<?php esc_attr_e( 'Try pro features for free!', 'wphb' ); ?>">
 	</div>
 <?php endif; ?>
 
-<?php $this->modal( 'clear-cache' ); ?>
+<?php
+$this->modal( 'clear-cache' );
+?>
 
 <script>
 	jQuery( document).ready( function () {

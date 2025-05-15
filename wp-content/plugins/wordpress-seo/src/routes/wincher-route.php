@@ -2,7 +2,6 @@
 
 namespace Yoast\WP\SEO\Routes;
 
-use WP_Query;
 use WP_REST_Request;
 use WP_REST_Response;
 use Yoast\WP\SEO\Actions\Wincher\Wincher_Account_Action;
@@ -21,56 +20,56 @@ class Wincher_Route implements Route_Interface {
 	 *
 	 * @var string
 	 */
-	const ROUTE_PREFIX = 'wincher';
+	public const ROUTE_PREFIX = 'wincher';
 
 	/**
 	 * The authorize route constant.
 	 *
 	 * @var string
 	 */
-	const AUTHORIZATION_URL_ROUTE = self::ROUTE_PREFIX . '/authorization-url';
+	public const AUTHORIZATION_URL_ROUTE = self::ROUTE_PREFIX . '/authorization-url';
 
 	/**
 	 * The authenticate route constant.
 	 *
 	 * @var string
 	 */
-	const AUTHENTICATION_ROUTE = self::ROUTE_PREFIX . '/authenticate';
-
-	/**
-	 * The account limit route constant.
-	 *
-	 * @var string
-	 */
-	const ACCOUNT_LIMIT_ROUTE = self::ROUTE_PREFIX . '/limits';
+	public const AUTHENTICATION_ROUTE = self::ROUTE_PREFIX . '/authenticate';
 
 	/**
 	 * The track bulk keyphrases route constant.
 	 *
 	 * @var string
 	 */
-	const KEYPHRASES_TRACK_ROUTE = self::ROUTE_PREFIX . '/keyphrases/track';
+	public const KEYPHRASES_TRACK_ROUTE = self::ROUTE_PREFIX . '/keyphrases/track';
 
 	/**
 	 * The keyphrases route constant.
 	 *
 	 * @var string
 	 */
-	const TRACKED_KEYPHRASES_ROUTE = self::ROUTE_PREFIX . '/keyphrases';
+	public const TRACKED_KEYPHRASES_ROUTE = self::ROUTE_PREFIX . '/keyphrases';
 
 	/**
 	 * The untrack keyphrase route constant.
 	 *
 	 * @var string
 	 */
-	const UNTRACK_KEYPHRASE_ROUTE = self::ROUTE_PREFIX . '/keyphrases/untrack';
+	public const UNTRACK_KEYPHRASE_ROUTE = self::ROUTE_PREFIX . '/keyphrases/untrack';
 
 	/**
-	 * The track all keyphrases route constant.
+	 * The check limit route constant.
 	 *
 	 * @var string
 	 */
-	const KEYPHRASE_TRACK_ALL_ROUTE = self::ROUTE_PREFIX . '/keyphrases/track/all';
+	public const CHECK_LIMIT_ROUTE = self::ROUTE_PREFIX . '/account/limit';
+
+	/**
+	 * The upgrade campaign route constant.
+	 *
+	 * @var string
+	 */
+	public const UPGRADE_CAMPAIGN_ROUTE = self::ROUTE_PREFIX . '/account/upgrade-campaign';
 
 	/**
 	 * The login action.
@@ -150,14 +149,6 @@ class Wincher_Route implements Route_Interface {
 
 		\register_rest_route( Main::API_V1_NAMESPACE, self::AUTHENTICATION_ROUTE, $authentication_route_args );
 
-		$check_limit_route_args = [
-			'methods'             => 'GET',
-			'callback'            => [ $this, 'check_limit' ],
-			'permission_callback' => [ $this, 'can_use_wincher' ],
-		];
-
-		\register_rest_route( Main::API_V1_NAMESPACE, self::ACCOUNT_LIMIT_ROUTE, $check_limit_route_args );
-
 		$track_keyphrases_route_args = [
 			'methods'             => 'POST',
 			'callback'            => [ $this, 'track_keyphrases' ],
@@ -182,6 +173,9 @@ class Wincher_Route implements Route_Interface {
 				'permalink' => [
 					'required' => false,
 				],
+				'startAt' => [
+					'required' => false,
+				],
 			],
 		];
 
@@ -195,13 +189,21 @@ class Wincher_Route implements Route_Interface {
 
 		\register_rest_route( Main::API_V1_NAMESPACE, self::UNTRACK_KEYPHRASE_ROUTE, $delete_keyphrase_route_args );
 
-		$track_all_route_args = [
-			'methods'             => 'POST',
-			'callback'            => [ $this, 'track_all' ],
+		$check_limit_route_args = [
+			'methods'             => 'GET',
+			'callback'            => [ $this, 'check_limit' ],
 			'permission_callback' => [ $this, 'can_use_wincher' ],
 		];
 
-		\register_rest_route( Main::API_V1_NAMESPACE, self::KEYPHRASE_TRACK_ALL_ROUTE, $track_all_route_args );
+		\register_rest_route( Main::API_V1_NAMESPACE, self::CHECK_LIMIT_ROUTE, $check_limit_route_args );
+
+		$get_upgrade_campaign_route_args = [
+			'methods'             => 'GET',
+			'callback'            => [ $this, 'get_upgrade_campaign' ],
+			'permission_callback' => [ $this, 'can_use_wincher' ],
+		];
+
+		\register_rest_route( Main::API_V1_NAMESPACE, self::UPGRADE_CAMPAIGN_ROUTE, $get_upgrade_campaign_route_args );
 	}
 
 	/**
@@ -230,19 +232,6 @@ class Wincher_Route implements Route_Interface {
 	}
 
 	/**
-	 * Gets the account limit from Wincher.
-	 *
-	 * @param WP_REST_Request $request The request. This request should have a code param set.
-	 *
-	 * @return WP_REST_Response The response.
-	 */
-	public function check_limit( WP_REST_Request $request ) {
-		$data = $this->account_action->check_limit();
-
-		return new WP_REST_Response( $data, $data->status );
-	}
-
-	/**
 	 * Posts keyphrases to track.
 	 *
 	 * @param WP_REST_Request $request The request. This request should have a code param set.
@@ -251,7 +240,12 @@ class Wincher_Route implements Route_Interface {
 	 */
 	public function track_keyphrases( WP_REST_Request $request ) {
 		$limits = $this->account_action->check_limit();
-		$data   = $this->keyphrases_action->track_keyphrases( $request['keyphrases'], $limits );
+
+		if ( $limits->status !== 200 ) {
+			return new WP_REST_Response( $limits, $limits->status );
+		}
+
+		$data = $this->keyphrases_action->track_keyphrases( $request['keyphrases'], $limits );
 
 		return new WP_REST_Response( $data, $data->status );
 	}
@@ -265,7 +259,7 @@ class Wincher_Route implements Route_Interface {
 	 * @return WP_REST_Response The response.
 	 */
 	public function get_tracked_keyphrases( WP_REST_Request $request ) {
-		$data = $this->keyphrases_action->get_tracked_keyphrases( $request['keyphrases'], $request['permalink'] );
+		$data = $this->keyphrases_action->get_tracked_keyphrases( $request['keyphrases'], $request['permalink'], $request['startAt'] );
 
 		return new WP_REST_Response( $data, $data->status );
 	}
@@ -275,7 +269,7 @@ class Wincher_Route implements Route_Interface {
 	 *
 	 * @param WP_REST_Request $request The request. This request should have a code param set.
 	 *
-	 * @return object The response.
+	 * @return WP_REST_Response The response.
 	 */
 	public function untrack_keyphrase( WP_REST_Request $request ) {
 		$data = $this->keyphrases_action->untrack_keyphrase( $request['keyphraseID'] );
@@ -284,16 +278,23 @@ class Wincher_Route implements Route_Interface {
 	}
 
 	/**
-	 * Collects all keyphrases and sends it to Wincher to track.
-	 *
-	 * @param WP_REST_Request $request The request. This request should have a keyphrases param set.
+	 * Checks the account limit.
 	 *
 	 * @return WP_REST_Response The response.
 	 */
-	public function track_all( WP_REST_Request $request ) {
-		$limits = $this->account_action->check_limit();
-		$data   = $this->keyphrases_action->track_all( $limits );
+	public function check_limit() {
+		$data = $this->account_action->check_limit();
+		return new WP_REST_Response( $data, $data->status );
+	}
 
+	/**
+	 * Gets the upgrade campaign.
+	 * If it's not a free user, no campaign is returned.
+	 *
+	 * @return WP_REST_Response The response.
+	 */
+	public function get_upgrade_campaign() {
+		$data = $this->account_action->get_upgrade_campaign();
 		return new WP_REST_Response( $data, $data->status );
 	}
 
@@ -316,15 +317,15 @@ class Wincher_Route implements Route_Interface {
 	 * @return bool Whether the website_id is valid.
 	 */
 	public function has_valid_website_id( $website_id ) {
-		return ! empty( $website_id ) && is_int( $website_id );
+		return ! empty( $website_id ) && \is_int( $website_id );
 	}
 
 	/**
-	 * Whether the current user is allowed to edit post/pages and thus use the Wincher integration.
+	 * Whether the current user is allowed to publish post/pages and thus use the Wincher integration.
 	 *
 	 * @return bool Whether the current user is allowed to use Wincher.
 	 */
 	public function can_use_wincher() {
-		return \current_user_can( 'edit_posts' ) || \current_user_can( 'edit_pages' );
+		return \current_user_can( 'publish_posts' ) || \current_user_can( 'publish_pages' );
 	}
 }

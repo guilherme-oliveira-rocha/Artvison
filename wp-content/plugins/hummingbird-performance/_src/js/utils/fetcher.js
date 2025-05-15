@@ -149,6 +149,18 @@ function Fetcher() {
 					'POST'
 				);
 			},
+
+			/**
+			 * Disable FastCGI cache.
+			 *
+			 * @since 3.4.0
+			 */
+			disableFastCGI() {
+				return request( actionPrefix + 'disable_fast_cgi', {}, 'POST' )
+					.then( ( response ) => {
+						return response;
+					} );
+			}
 		},
 
 		/**
@@ -258,7 +270,7 @@ function Fetcher() {
 			 * @param {string} form
 			 */
 			saveCriticalCss: ( form ) => {
-				const action = actionPrefix + 'minification_save_critical_css';
+				const action = actionPrefix + 'minification_save_extra_optimization_data';
 				return request( action, { form }, 'POST' ).then(
 					( response ) => {
 						return response;
@@ -274,17 +286,6 @@ function Fetcher() {
 			 */
 			updateAssetPath: ( value ) => {
 				const action = actionPrefix + 'minification_update_asset_path';
-				return request( action, { value }, 'POST' );
-			},
-
-			/**
-			 * Reset individual file.
-			 *
-			 * @since 1.9.2
-			 * @param {string} value
-			 */
-			resetAsset: ( value ) => {
-				const action = actionPrefix + 'minification_reset_asset';
 				return request( action, { value }, 'POST' );
 			},
 
@@ -308,6 +309,108 @@ function Fetcher() {
 			 */
 			updateExcludeList: ( data ) => {
 				const action = actionPrefix + 'minification_save_exclude_list';
+				return request( action, { data }, 'POST' );
+			},
+			/**
+			 * Clear Css files.
+			 *
+			 * @since 3.6.0
+			 * @param {string} module
+			 */
+			clearCriticalCssFiles: () => {
+				return request(
+					actionPrefix + 'clear_critical_css_files',
+					{},
+					'POST'
+				).then( ( response ) => {
+					return response;
+				} );
+			},
+			
+			/**
+			 * Create CSS files from gutenberg.
+			 *
+			 * @since 3.6.0
+			 * @param {string} postID
+			 */
+			createCSSForPost: ( postId ) => {
+				return request(
+					actionPrefix + 'gutenberg_create_css_file',
+					{ postId },
+					'POST'
+				);
+			},
+			
+			/**
+			 * Re Create CSS files from gutenberg.
+			 *
+			 * @since 3.6.0
+			 * @param {string} postID
+			 */
+			reCreateCSSForPost: ( postId ) => {
+				return request(
+					actionPrefix + 'gutenberg_recreate_css_file',
+					{ postId },
+					'POST'
+				);
+			},
+			
+			/**
+			 * Revert CSS files from gutenberg.
+			 *
+			 * @since 3.6.0
+			 * @param {string} postID
+			 */
+			revertCSSForPost: ( postId ) => {
+				return request(
+					actionPrefix + 'gutenberg_revert_css_file',
+					{ postId },
+					'POST'
+				);
+			},
+
+			/**
+			 * Get critical css status for single post.
+			 *
+			 * @since 3.6.0
+			 * @param {string} postID
+			 */
+			 getCriticalStatusForSinglePost: ( postId ) => {
+				return request(
+					actionPrefix + 'gutenberg_get_critical_status_for_single_post',
+					{ postId },
+					'POST'
+				);
+			},
+
+			/**
+			 * Get critical css status for queue.
+			 */
+			 getCriticalStatusForQueue: () => {
+				return request(
+					actionPrefix + 'get_critical_status_for_queue',
+					{},
+					'POST'
+				);
+			},
+
+			/**
+			 * Update Toggle Delay Js status.
+			 *
+			 * @param {string} data delay checkbox value.
+			 */
+			 toggleDelayJs: ( data ) => {
+				const action = actionPrefix + 'react_minify_toggle_delay_js';
+				return request( action, { data }, 'POST' );
+			},
+
+			/**
+			 * Update Toggle Critical CSS status.
+			 *
+			 * @param {string} data critical css checkbox value.
+			 */
+			toggleCriticalCss: ( data ) => {
+				const action = actionPrefix + 'react_minify_toggle_critical_css';
 				return request( action, { data }, 'POST' );
 			},
 		},
@@ -450,20 +553,6 @@ function Fetcher() {
 					( response ) => {
 						return response;
 					}
-				);
-			},
-
-			/**
-			 * Toggle tracking from quick setup modal.
-			 *
-			 * @since 2.5.0
-			 * @param {boolean} status
-			 */
-			toggleTracking: ( status ) => {
-				return request(
-					actionPrefix + 'toggle_tracking',
-					{ status },
-					'POST'
 				);
 			},
 

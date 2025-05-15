@@ -7,6 +7,7 @@
 
 namespace Hummingbird\Core;
 
+use Hummingbird\Core\Modules\Minify;
 use WP_Admin_Bar;
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -54,6 +55,7 @@ class Core {
 		}
 
 		$this->add_menu_bar_actions();
+		$this->init_ao_safe_mode();
 	}
 
 	/**
@@ -64,7 +66,8 @@ class Core {
 	private function init() {
 		// Register private policy text.
 		add_action( 'admin_init', array( $this, 'privacy_policy_content' ) );
-		add_action( 'admin_init', array( $this, 'upsell_notice' ) );
+		add_action( 'admin_init', array( $this, 'upsell_notice' ), 9 );
+		add_filter( 'wpmudev_notices_is_disabled', array( $this, 'wpmudev_remove_email_from_disabled_list' ), 10, 3 );
 
 		// Init the API.
 		$this->api = new Api\API();
@@ -85,8 +88,12 @@ class Core {
 		new Integration\WPH();
 		new Integration\SiteGround();
 		Integration\Opcache::get_instance();
+		Integration\Weglot::get_instance();
 		new Integration\Wpengine();
 		new Integration\WPMUDev();
+		new Integration\Defender();
+		new Integration\Avada();
+		new Integration\OxygenBuilder();
 	}
 
 	/**
@@ -98,7 +105,7 @@ class Core {
 		 */
 		$modules = apply_filters(
 			'wp_hummingbird_modules',
-			array( 'minify', 'gzip', 'caching', 'performance', 'uptime', 'cloudflare', 'gravatar', 'page_cache', 'advanced', 'rss', 'redis' )
+			array( 'minify', 'gzip', 'caching', 'performance', 'uptime', 'cloudflare', 'gravatar', 'page_cache', 'advanced', 'rss', 'redis', 'delayjs', 'critical_css' )
 		);
 
 		array_walk( $modules, array( $this, 'load_module' ) );
@@ -112,19 +119,13 @@ class Core {
 			return;
 		}
 
-		$minify    = Settings::get_setting( 'enabled', 'minify' );
-		$pc_module = Settings::get_setting( 'enabled', 'page_cache' );
+		add_action( 'admin_bar_menu', array( $this, 'admin_bar_menu' ), 100 );
 
-		// Do not strict compare $pc_module to true, because it can also be 'blog-admins'.
-		if ( ! is_multisite() || ( is_multisite() && ( ( 'super-admins' === $minify && is_super_admin() ) || true === $minify || true === (bool) $pc_module ) ) ) {
-			add_action( 'admin_bar_menu', array( $this, 'admin_bar_menu' ), 100 );
+		add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_global' ) );
+		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_global' ) );
 
-			add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_global' ) );
-			add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_global' ) );
-
-			// Defer the loading of the global js.
-			add_filter( 'script_loader_tag', array( $this, 'add_defer_attribute' ), 10, 2 );
-		}
+		// Defer the loading of the global js.
+		add_filter( 'script_loader_tag', array( $this, 'add_defer_attribute' ), 10, 2 );
 	}
 
 	/**
@@ -164,13 +165,21 @@ class Core {
 	public function admin_bar_menu( $admin_bar ) {
 		$menu = array();
 
-		$cache_control = Settings::get_setting( 'control', 'settings' );
-		if ( $cache_control && ( ! is_multisite() || ! is_network_admin() ) ) {
+		$active_modules = Utils::get_active_cache_modules();
+		if ( empty( $active_modules ) ) {
+			return; // No active caching modules - exit.
+		}
+
+		$minify    = Settings::get_setting( 'enabled', 'minify' );
+		$pc_module = Settings::get_setting( 'enabled', 'page_cache' );
+
+		// Do not strict compare $pc_module to true, because it can also be 'blog-admins'.
+		if ( ! is_multisite() || ( ( 'super-admins' === $minify && is_super_admin() ) || true === $minify || true === (bool) $pc_module ) ) {
+			$cache_control = Settings::get_setting( 'control', 'settings' );
 			if ( true === $cache_control ) {
 				$menu['wphb-clear-all-cache'] = array( 'title' => __( 'Clear all cache', 'wphb' ) );
-			} else {
-				$active_cache_modules = Utils::get_active_cache_modules();
-				foreach ( $active_cache_modules as $module => $name ) {
+			} elseif ( is_array( $cache_control ) ) {
+				foreach ( $active_modules as $module => $name ) {
 					if ( ! in_array( $module, $cache_control, true ) ) {
 						continue;
 					}
@@ -193,7 +202,7 @@ class Core {
 			}
 		}
 
-		if ( is_multisite() && is_network_admin() ) {
+		if ( is_multisite() && is_network_admin() && $pc_module ) {
 			$menu['wphb-clear-cache-network-wide'] = array( 'title' => __( 'Clear page cache on all subsites', 'wphb' ) );
 		}
 
@@ -256,8 +265,9 @@ class Core {
 			'wphb-global',
 			'wphbGlobal',
 			array(
-				'ajaxurl' => admin_url( 'admin-ajax.php' ),
-				'nonce'   => wp_create_nonce( 'wphb-fetch' ),
+				'ajaxurl'    => admin_url( 'admin-ajax.php' ),
+				'nonce'      => wp_create_nonce( 'wphb-fetch' ),
+				'minify_url' => admin_url( 'admin.php?page=wphb-minification' ),
 			)
 		);
 	}
@@ -287,11 +297,11 @@ class Core {
 			return;
 		}
 
-		$content = sprintf(
-			'<h3>%s</h3><p>%s</p>',
+		$content = sprintf( /* translators: %1$s - Text, %2$s - Link to privacy policy page */
+			'<h3>%1$s</h3><p>%2$s</p>',
 			__( 'Third parties', 'wphb' ),
 			sprintf(
-				/* translators: %s: start of a href tag, %s: end of a tag */
+				/* translators: %1$s - opening a tag, %2$s - closing a tag */
 				__( 'Hummingbird uses the Stackpath Content Delivery Network (CDN). Stackpath may store web log information of site visitors, including IPs, UA, referrer, Location and ISP info of site visitors for 7 days. Files and images served by the CDN may be stored and served from countries other than your own. Stackpath’s privacy policy can be found %1$shere%2$s.', 'wphb' ),
 				'<a href="https://www.stackpath.com/legal/privacy-statement/" target="_blank">',
 				'</a>'
@@ -302,6 +312,27 @@ class Core {
 			__( 'Hummingbird', 'wphb' ),
 			wp_kses_post( wpautop( $content, false ) )
 		);
+	}
+
+	/**
+	 * Removed the email prompt notice form disabled list and adding the giveaway to the disabled list.
+	 *
+	 * @param bool   $is_disabled Is notice disabled.
+	 * @param string $type        Notice type.
+	 * @param string $plugin      Plugin ID.
+	 *
+	 * @return bool
+	 */
+	public function wpmudev_remove_email_from_disabled_list( $is_disabled, $type, $plugin ) {
+		if ( 'hummingbird' === $plugin && 'email' === $type ) {
+			return false;
+		}
+
+		if ( 'rate' === $type && 'yes' !== get_option( 'wphb-notice-free-rated-show' ) ) {
+			return true;
+		}
+
+		return $is_disabled;
 	}
 
 	/**
@@ -318,6 +349,11 @@ class Core {
 			return;
 		}
 
+		// If dash plugin exists, no need to upsell.
+		if ( class_exists( 'WPMUDEV_Dashboard' ) || file_exists( WP_PLUGIN_DIR . '/wpmudev-updates/update-notifications.php' ) ) {
+			return;
+		}
+
 		/* @noinspection PhpIncludeInspection */
 		require_once WPHB_DIR_PATH . 'core/externals/free-dashboard/module.php';
 
@@ -331,14 +367,23 @@ class Core {
 			}
 		);
 
+		$free_installation = get_site_option( 'wphb-free-install-date' );
+
 		// Register the current plugin.
 		do_action(
-			'wdev_register_plugin',
-			/* 1             Plugin ID */ WPHB_BASENAME,
-			/* 2          Plugin Title */ 'Hummingbird',
-			/* 3 https://wordpress.org */ '/plugins/hummingbird-performance/',
-			/* 4      Email Button CTA */ __( 'Get Fast!', 'wphb' ),
-			/* 5  Mailchimp List id for the plugin - e.g. 4b14b58816 is list id for Smush */ '4b14b58816'
+			'wpmudev_register_notices',
+			'hummingbird', // Required: plugin id. Get from the below list.
+			array(
+				'basename'     => WPHB_BASENAME, // Required: Plugin basename (for backward compat).
+				'title'        => 'Hummingbird', // Plugin title.
+				'wp_slug'      => 'hummingbird-performance', // Plugin slug on wp.org
+				'cta_email'    => __( 'Get Fast!', 'wphb' ), // Email button CTA.
+				'mc_list_id'   => '4b14b58816', // Mailchimp list id for the plugin - e.g. 4b14b58816 is list id for Smush.
+				'installed_on' => $free_installation ?: time(), // Plugin installed time (timestamp). Default to current time.
+				'screens'      => array( // Screen IDs of plugin pages.
+					'toplevel_page_wphb',
+				),
+			)
 		);
 
 		// The email message contains 1 variable: plugin-name.
@@ -348,6 +393,196 @@ class Core {
 				return "You're awesome for installing %s! Make sure you get the most out of it, boost your Google PageSpeed score with these tips and tricks - just for users of Hummingbird!";
 			}
 		);
+	}
+
+	/**
+	 * Init safe mode.
+	 *
+	 * @since 3.4.0
+	 *
+	 * @return void
+	 */
+	private function init_ao_safe_mode() {
+		$status = filter_input( INPUT_GET, 'minify-safe', FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE );
+
+		if ( true !== $status ) {
+			return;
+		}
+
+		if ( ! Minify::get_safe_mode_status() ) {
+			return;
+		}
+
+		if ( ! current_user_can( 'manage_options' ) ) {
+			return;
+		}
+
+		add_action( 'wp_body_open', array( $this, 'display_safe_mode_box' ) );
+	}
+
+	/**
+	 * Display safe mode DIV on front-end.
+	 *
+	 * @since 3.4.0
+	 *
+	 * @return void
+	 */
+	public function display_safe_mode_box() {
+		?>
+		<div id="wphb-ao-safe-mode">
+			<div id="wphb-ao-safe-mode-actions">
+				<a role="button" href="<?php echo admin_url( 'admin.php?page=wphb-minification' ); ?>"
+				   id="wphb-ao-safe-mode-back"><?php esc_html_e( 'Go Back', 'wphb' ); ?></a>
+
+				<div>
+					<a href="#" id="wphb-ao-safe-mode-copy">
+						<span><?php esc_html_e( "Copy Test Link", 'wphb' ); ?></span>
+						<span><?php esc_html_e( "Link Copied", 'wphb' ); ?></span>
+					</a>
+					<button role="button" id="wphb-ao-safe-mode-save"><?php esc_html_e( 'Publish', 'wphb' ); ?></button>
+				</div>
+			</div>
+			<p><?php esc_html_e( "You are currently viewing the frontend of your website in Safe Mode preview. Check for any errors in your browser's console or broken UI. You can also test with page speed tools in order to see how the changes affected the score. When ready, publish your changes to live.", 'wphb' ); ?></p>
+			<style>
+				#wphb-ao-safe-mode {
+					z-index: 99999;
+					position: sticky;
+					top: 32px;
+					left: 0;
+					width: 100%;
+					min-width: 600px;
+					background: #FFFFFF;
+					display: flex;
+					flex-direction: column;
+					align-items: center;
+					padding: 30px 80px;
+					font-weight: 400;
+					font-size: 15px;
+					line-height: 30px;
+					letter-spacing: -0.25px;
+					color: #333333;
+					box-shadow: 0 0 40px rgba(0, 0, 0, 0.1);
+					box-sizing: border-box;
+				}
+
+				#wphb-ao-safe-mode p { 
+					margin: 0;
+					font-size: 13px;
+					line-height: 22px;
+				}
+
+				#wphb-ao-safe-mode-actions {
+					display: flex;
+					justify-content: space-between;
+					width: 100%;
+					margin-bottom: 15px;
+				}
+
+				@media screen and ( max-width: 385px ) {
+					#wphb-ao-safe-mode-actions {
+						flex-direction: column;
+						align-items: flex-start;
+					}
+
+					#wphb-ao-safe-mode-actions > div {
+						display: flex;
+						flex-direction: column;
+						align-items: flex-start;
+					}
+
+					#wphb-ao-safe-mode-copy {
+						padding: 10px 0;
+					}
+				}
+
+				#wphb-ao-safe-mode-copy {
+					font-size: 13px;
+					font-weight: 500;
+					line-height: 22px;
+					color: #17A8E3;
+					margin-right: 21px;
+					text-decoration: none;
+					position: relative;
+				}
+
+				#wphb-ao-safe-mode-copy span:first-child {
+					display: inline;
+				}
+
+				#wphb-ao-safe-mode-copy span:last-child {
+					display: none;
+				}
+
+				#wphb-ao-safe-mode-copy.wphb-ao-safe-mode-copy-success:after {
+					font-family: dashicons;
+					content: '\f15e';
+					vertical-align: middle;
+					left: 103%;
+					position: absolute;
+					top: -1px;
+				}
+
+				#wphb-ao-safe-mode-copy.wphb-ao-safe-mode-copy-success span:first-child {
+					display: none;
+				}
+
+				#wphb-ao-safe-mode-copy.wphb-ao-safe-mode-copy-success span:last-child {
+					display: inline;
+				}
+
+				#wphb-ao-safe-mode [role="button"] {
+					border: 2px solid #DDDDDD;
+					border-radius: 4px;
+					background: #FFFFFF;
+					padding: 7px 16px;
+					text-transform: uppercase;
+					font-weight: 700;
+					font-size: 12px;
+					line-height: 16px;
+					letter-spacing: -0.25px;
+					color: #888888;
+					text-decoration: none;
+				}
+
+				#wphb-ao-safe-mode [role="button"]:hover {
+					text-decoration: none;
+				}
+
+				#wphb-ao-safe-mode [role="button"]:before {
+					font-family: dashicons;
+					font-size: 18px;
+					line-height: 16px;
+					margin-right: 5px;
+					vertical-align: bottom;
+					content: '\f341';
+				}
+
+				#wphb-ao-safe-mode [role="button"]:hover { cursor: pointer; }
+				#wphb-ao-safe-mode-actions div [role="button"]:before { content: '\f15e'; }
+
+				#wphb-ao-safe-mode-actions div [role="button"] {
+					background: #17A8E3;
+					border-color: #17A8E3;
+					color: #FFFFFF;
+				}
+
+				#wphb-ao-safe-mode-actions div [role="button"][disabled] {
+					background: #DDDDDD;
+					border-color: #DDDDDD;
+					cursor: default;
+				}
+
+				@media screen and ( max-width: 782px ) {
+					#wphb-ao-safe-mode {
+						display: block;
+						padding: 20px 20px;
+						min-width: 240px;
+						top: 46px;
+					}
+				}
+			</style>
+		</div>
+		<?php
 	}
 
 }

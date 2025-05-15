@@ -55,8 +55,7 @@ class Performance extends Module {
 
 		// Start the test.
 		self::set_doing_report();
-		$api = Utils::get_api();
-		$api->performance->ping();
+		Utils::get_api()->performance->ping();
 
 		// Clear dismissed report.
 		if ( self::report_dismissed() ) {
@@ -117,36 +116,30 @@ class Performance extends Module {
 		}
 
 		// Set time when we started the report.
-		set_transient( 'wphb-doing-report', current_time( 'timestamp' ), 300 ); // save for 5 minutes.
+		set_transient( 'wphb-doing-report', time(), 300 ); // save for 5 minutes.
 		Settings::delete( 'wphb-stop-report' );
 	}
 
 	/**
 	 * Get the latest report from server
 	 *
-	 * @return array|WP_Error
+	 * @return void
 	 */
 	public static function refresh_report() {
 		self::set_doing_report( false );
 		self::dismiss_report( false );
-		$api     = Utils::get_api();
-		$results = $api->performance->results();
+		$results = Utils::get_api()->performance->results();
 
-		$skip_db_save = false;
+		$skip_db = false;
 
 		if ( is_wp_error( $results ) ) {
 			$error_message = $results->get_error_message();
 
 			if ( 200 === $results->get_error_code() && 'Performance Results not found' === $error_message ) {
-				$skip_db_save = true;
-				$message      = __( 'Whoops, looks like we were unable to grab your test results this time round. Please wait a few moments and try again...', 'wphb' );
+				$skip_db = true;
+				$message = __( 'Whoops, looks like we were unable to grab your test results this time round. Please wait a few moments and try again...', 'wphb' );
 			} else {
-				$message = __(
-					"The performance test didn't return any results. This could be because you're on a local website
-					(which we can't access) or something went wrong trying to connect with the testing API. Give it
-					another go and if the problem persists, please open a ticket with our support team.",
-					'wphb'
-				);
+				$message = __( "The performance test didn't return any results. This could be because you're on a local website (which we can't access) or something went wrong trying to connect with the testing API. Give it another go and if the problem persists, please open a ticket with our support team.", 'wphb' );
 			}
 
 			// It's an actual error.
@@ -166,8 +159,8 @@ class Performance extends Module {
 			do_action( 'wphb_get_performance_report', $results->data );
 		}
 
-		if ( $skip_db_save ) {
-			return $results;
+		if ( $skip_db ) {
+			return;
 		}
 
 		// Only save reports from Performance module.
@@ -186,7 +179,7 @@ class Performance extends Module {
 			$last_report = self::get_last_report();
 		}
 
-		$current_gmt_time = current_time( 'timestamp', true );
+		$current_gmt_time = time();
 		if ( $last_report && ! is_wp_error( $last_report ) ) {
 			$data_time = $last_report->data->time;
 			if ( ( $data_time + 300 ) < $current_gmt_time ) {

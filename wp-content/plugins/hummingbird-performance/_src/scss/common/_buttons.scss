@@ -16,10 +16,20 @@
         text-shadow: none !important;
     }
 
-    #wphb-audits-filter-button.active,
-    #wphb-minification-filter-button.active {
+    #wphb-audits-filter-button.active {
         border-color: #888;
         background-color: #888;
         color: #fff;
+    }
+}
+#delay-js-non-pro-member-modal {
+    .sui-box {
+        button.sui-button-icon {
+            color: #FFFFFF;
+        }
+        button.sui-button-icon:hover,
+        button.sui-button-icon:focus {
+            color: #333;
+        }
     }
 }

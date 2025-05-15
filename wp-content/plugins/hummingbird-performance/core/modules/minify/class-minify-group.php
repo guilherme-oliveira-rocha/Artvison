@@ -243,6 +243,27 @@ class Minify_Group {
 	}
 
 	/**
+	 * Check if a script or style enqueued file version is in format like x.x.x.
+	 *
+	 * @param string $version The version number to validate.
+	 *
+	 * @return bool True if the version is valid, false otherwise.
+	 */
+	public function is_valid_enqueue_version( $version ) {
+		if ( empty( $version ) ) {
+			return false;
+		}
+
+		$pattern = '/^\d+\.\d+(\.\d+)?$/';
+
+		// Perform the regular expression match.
+		$is_valid = preg_match( $pattern, $version );
+
+		// Return true if the version matches the pattern, false otherwise.
+		return (bool) $is_valid;
+	}
+
+	/**
 	 * Add a single handle to the group
 	 *
 	 * @param string $handle   Handle.
@@ -263,6 +284,17 @@ class Minify_Group {
 		if ( is_int( $version ) && 10 === strlen( $version ) ) {
 			$version = false;
 		}
+
+		// Make sure version is not array otherwise it will through PHP warning while imploding the multidimensional array.
+		if ( is_array( $version ) ) {
+			$version = false;
+		}
+
+		// Make sure enqueue file version is in format like x.x.x if not it means the version is dynamic and set it to false otherwise it will end up in a forever loop.
+		if ( ! $this->is_valid_enqueue_version( $version ) ) {
+			$version = false;
+		}
+
 		$this->handle_versions[ $handle ] = $version;
 
 		$this->handle_dependencies[ $handle ]     = array();
@@ -778,7 +810,7 @@ class Minify_Group {
 			}
 		}
 
-		return $this->handle_urls[ $handle ];
+		return isset( $this->handle_urls[ $handle ] ) ? $this->handle_urls[ $handle ] : '';
 	}
 
 	/**
@@ -1075,12 +1107,14 @@ class Minify_Group {
 						'sslverify' => false,
 					)
 				);
-				$content = wp_remote_retrieve_body( $request );
+				$content = '';
 				if ( is_wp_error( $request ) ) {
 					$minify_module->log( $request->get_error_message() );
 				} elseif ( wp_remote_retrieve_response_code( $request ) !== 200 ) {
 					$minify_module->log( 'Code different from 200. Truncated content:' );
 					$minify_module->log( substr( $content, 0, 1000 ) );
+				} else {
+					$content = wp_remote_retrieve_body( $request );
 				}
 			}
 
@@ -1091,7 +1125,7 @@ class Minify_Group {
 					$this->type,
 					'empty-content',
 					__( 'It looks like this file is empty', 'wphb' ),
-					array( 'minify', 'combine' ) // Disallow minification/concat.
+					array( 'minify', 'combine', 'nocdn' ) // Disallow minification/concat.
 				);
 				continue;
 			} else {
@@ -1112,6 +1146,19 @@ class Minify_Group {
 			// Concatenate and minify scripts/styles!
 			if ( 'scripts' === $this->type ) {
 				$minify_module->log( 'Minify script ' . $handle );
+
+				if ( preg_match_all( '/(?<fullImport>(?!important)(?!importNode)import\s?.*?;)/', $content, $matches ) ) {
+					// We can't allow import directives in files.
+					$minify_module->errors_controller->add_error(
+						$handle,
+						$this->type,
+						'import-not-allowed',
+						__( 'import directive is not allowed in scripts', 'wphb' ),
+						array( 'minify', 'combine', 'nocdn' ),
+						array( 'minify', 'combine', 'nocdn' )
+					);
+					continue;
+				}
 			} elseif ( 'styles' === $this->type ) {
 				$minify_module->log( 'Minify style ' . $handle );
 				if ( $is_local ) {
@@ -1151,10 +1198,13 @@ class Minify_Group {
 				/**
 				 * Possible to clear handle error.
 				 * $minification_module->errors_controller->clear_handle_error( $handle, $this->type );
+				 *
+				 * @since 3.3.3 Add 3 new parameters `$handle, $this->type and $is_local` for filter `wphb_minify_file_content`.
+				 * Smush will use this filter to parse background images from external CSS files.
 				 */
 				$files_data[] = array(
 					'handle'  => $handle,
-					'content' => apply_filters( 'wphb_minify_file_content', $content ),
+					'content' => apply_filters( 'wphb_minify_file_content', $content, $handle, $this->type, $is_local ),
 					'minify'  => $this->should_do_handle( $handle, 'minify' ),
 				);
 			}
@@ -1312,6 +1362,7 @@ class Minify_Group {
 
 				if ( is_wp_error( $upload ) ) {
 					// Save error and delete post.
+					Utils::get_module( 'minify' )->log( 'Deleting (in insert_group function on upload error) the minify group file id : ' . $post_id );
 					wp_delete_post( $post_id, true );
 					wp_cache_delete( 'wphb_minify_groups' );
 					return false;
@@ -1387,6 +1438,7 @@ class Minify_Group {
 	 */
 	public function delete_file() {
 		if ( get_post( $this->file_id ) && 'wphb_minify_group' === get_post_type( $this->file_id ) ) {
+			Utils::get_module( 'minify' )->log( 'Deleting (in delete_file function) the minify group file id : ' . $this->file_id );
 			// This will also delete the file. See Hummingbird\Core\Modules\Minify::on_delete_post().
 			wp_delete_post( $this->file_id, true );
 			$this->file_id = 0;
@@ -1477,6 +1529,11 @@ class Minify_Group {
 			return false;
 		}
 
+		if ( ! $this->should_generate_file() ) {
+			// Nothing to process.
+			return false;
+		}
+
 		if ( ! is_array( $handles ) ) {
 			$handles = array( $handles );
 		}
@@ -1526,6 +1583,14 @@ class Minify_Group {
 			return false;
 		}
 		return get_post_meta( $this->file_id, '_path', true );
+	}
+
+	public function get_file_url() {
+		if ( ! $this->should_generate_file() ) {
+			return false;
+		}
+
+		return get_post_meta( $this->file_id, '_url', true );
 	}
 
 	/**

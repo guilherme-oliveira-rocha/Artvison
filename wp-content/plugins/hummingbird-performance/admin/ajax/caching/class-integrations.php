@@ -46,6 +46,11 @@ class Integrations {
 	 * @since 3.0.0
 	 */
 	public function cloudflare_status() {
+		// Check permission.
+		if ( ! current_user_can( Utils::get_admin_capability() ) ) {
+			die();
+		}
+
 		$options     = Utils::get_module( 'cloudflare' )->get_options();
 		$expiry      = Utils::get_module( 'cloudflare' )->get_caching_expiration();
 		$frequencies = Cloudflare::get_frequencies();
@@ -78,6 +83,11 @@ class Integrations {
 	public function cloudflare_apo_status() {
 		check_ajax_referer( 'wphb-fetch' );
 
+		// Check permission.
+		if ( ! current_user_can( Utils::get_admin_capability() ) ) {
+			die();
+		}
+
 		Utils::get_module( 'cloudflare' )->get_apo_settings();
 		$this->cloudflare_status();
 
@@ -92,6 +102,11 @@ class Integrations {
 	public function cloudflare_disconnect() {
 		check_ajax_referer( 'wphb-fetch' );
 
+		// Check permission.
+		if ( ! current_user_can( Utils::get_admin_capability() ) ) {
+			die();
+		}
+
 		Utils::get_module( 'cloudflare' )->disconnect();
 
 		$this->cloudflare_status();
@@ -104,6 +119,11 @@ class Integrations {
 	 */
 	public function cloudflare_zones() {
 		check_ajax_referer( 'wphb-fetch' );
+
+		// Check permission.
+		if ( ! current_user_can( Utils::get_admin_capability() ) ) {
+			die();
+		}
 
 		$zones = Utils::get_module( 'cloudflare' )->get_zones_list();
 
@@ -128,6 +148,11 @@ class Integrations {
 	public function cloudflare_clear_cache() {
 		check_ajax_referer( 'wphb-fetch' );
 
+		// Check permission.
+		if ( ! current_user_can( Utils::get_admin_capability() ) ) {
+			die();
+		}
+
 		Utils::get_module( 'cloudflare' )->clear_cache();
 
 		wp_send_json_success();
@@ -141,7 +166,12 @@ class Integrations {
 	public function cloudflare_save_zone() {
 		check_ajax_referer( 'wphb-fetch' );
 
-		$zone = filter_input( INPUT_POST, 'data', FILTER_SANITIZE_STRING );
+		// Check permission.
+		if ( ! current_user_can( Utils::get_admin_capability() ) ) {
+			die();
+		}
+
+		$zone = filter_input( INPUT_POST, 'data', FILTER_UNSAFE_RAW );
 		$zone = json_decode( html_entity_decode( $zone ), true );
 
 		$zones = Utils::get_module( 'cloudflare' )->get_zones_list();
@@ -170,7 +200,12 @@ class Integrations {
 	public function cloudflare_toggle_apo() {
 		check_ajax_referer( 'wphb-fetch' );
 
-		$status = filter_input( INPUT_POST, 'data', FILTER_SANITIZE_STRING );
+		// Check permission.
+		if ( ! current_user_can( Utils::get_admin_capability() ) ) {
+			die();
+		}
+
+		$status = filter_input( INPUT_POST, 'data', FILTER_UNSAFE_RAW );
 		$status = json_decode( html_entity_decode( $status ), true );
 
 		Utils::get_module( 'cloudflare' )->toggle_apo( $status );
@@ -194,7 +229,12 @@ class Integrations {
 	public function cloudflare_toggle_device_cache() {
 		check_ajax_referer( 'wphb-fetch' );
 
-		$status = filter_input( INPUT_POST, 'data', FILTER_SANITIZE_STRING );
+		// Check permission.
+		if ( ! current_user_can( Utils::get_admin_capability() ) ) {
+			die();
+		}
+
+		$status = filter_input( INPUT_POST, 'data', FILTER_UNSAFE_RAW );
 		$status = json_decode( html_entity_decode( $status ), true );
 
 		Utils::get_module( 'cloudflare' )->toggle_cache_by_device( $status );

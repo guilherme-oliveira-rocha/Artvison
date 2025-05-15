@@ -52,14 +52,17 @@ trait WPConfig {
 		foreach ( $lines as $line ) {
 			// Maybe there's already a `define`?
 			if ( preg_match( "/define\(\s*'$name'/i", $line ) ) {
-				$added = true;
-				WP_Hummingbird::get_instance()->core->logger->log( "Added define( $name, $value ) to wp-config.php file.", $this->get_slug() );
-				$new_file[] = "define( '$name', $value ); // Added by Hummingbird\n";
 				continue;
 			}
 
 			// If we reach the end and no define - add it.
 			if ( ! $added && preg_match( "/\/\* That's all, stop editing!.*/i", $line ) ) {
+				$added = true;
+				WP_Hummingbird::get_instance()->core->logger->log( "Added define( $name, $value ) to wp-config.php file.", $this->get_slug() );
+				$new_file[] = "define( '$name', $value ); // Added by Hummingbird\n";
+			}
+
+			if ( ! $added && preg_match( "/^require_once(\(|\s+)?ABSPATH(\s+)?\.(\s+)?('|\")wp-settings\.php('|\")(\))?;/i", $line ) ) {
 				WP_Hummingbird::get_instance()->core->logger->log( "Added define( $name, $value ) to wp-config.php file.", $this->get_slug() );
 				$new_file[] = "define( '$name', $value ); // Added by Hummingbird\n";
 			}

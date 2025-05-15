@@ -15,8 +15,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 <?php if ( ! apply_filters( 'wpmudev_branding_hide_branding', false ) ) : ?>
 	<img class="sui-image" aria-hidden="true" alt=""
-		src="<?php echo esc_url( WPHB_DIR_URL . 'admin/assets/image/hb-graphic-gravatarcaching-disabled.png' ); ?>"
-		srcset="<?php echo esc_url( WPHB_DIR_URL . 'admin/assets/image/hb-graphic-gravatarcaching-disabled.png' ); ?> 1x, <?php echo esc_url( WPHB_DIR_URL . 'admin/assets/image/hb-graphic-gravatarcaching-disabled@2x.png' ); ?> 2x" />
+		src="<?php echo esc_url( WPHB_DIR_URL . 'admin/assets/image/hb-graphic-page-caching-disabled.png' ); ?>"
+		srcset="<?php echo esc_url( WPHB_DIR_URL . 'admin/assets/image/hb-graphic-page-caching-disabled.png' ); ?> 1x, <?php echo esc_url( WPHB_DIR_URL . 'admin/assets/image/hb-graphic-page-caching-disabled@2x.png' ); ?> 2x" />
 <?php endif; ?>
 
 <div class="sui-message-content">
@@ -24,7 +24,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 		<?php esc_html_e( 'Gravatar Caching stores local copies of avatars used in comments and in your theme. You can control how often you want the cache purged depending on how your website is set up.', 'wphb' ); ?>
 	</p>
 
-	<a href="<?php echo esc_url( $activate_url ); ?>" class="sui-button sui-button-blue" role="button" onclick="WPHB_Admin.Tracking.enableFeature( 'Gravatar Caching' )">
+	<a href="<?php echo esc_url( $activate_url ); ?>" class="sui-button sui-button-blue" role="button" onclick="wphbMixPanel.enableFeature( 'Gravatar Caching' )">
 		<?php esc_html_e( 'Activate', 'wphb' ); ?>
 	</a>
 </div>

@@ -14,6 +14,7 @@
  * Author URI:        https://profiles.wordpress.org/wpmudev/
  *
  * Based on Eric Mann's and Erick Hitter's Redis Object Cache: https://github.com/ericmann/Redis-Object-Cache
+ * Based on Till Krüss's Redis Object Cache: https://wordpress.org/plugins/redis-cache/
  */
 
 if ( ! defined( 'WPHB_REDIS_HOST' ) && ! defined( 'WPHB_REDIS_PORT' ) ) {
@@ -382,6 +383,7 @@ class WP_Object_Cache {
 			}
 
 			if ( 'hhvm' === $client ) {
+				/* translators: %d: HHVM no */
 				$this->redis_client = sprintf( 'HHVM Extension (v%s)', constant( 'HHVM_VERSION' ) );
 
 				$this->redis = new Redis();
@@ -394,6 +396,7 @@ class WP_Object_Cache {
 
 			if ( 'pecl' === $client ) {
 				$phpredis_version   = phpversion( 'redis' );
+				/* translators: %s: PECL extesnion */
 				$this->redis_client = sprintf( 'PECL Extension (v%s)', $phpredis_version );
 
 				$this->redis = new Redis();
@@ -418,11 +421,13 @@ class WP_Object_Cache {
 				// Load bundled Predis library.
 				if ( ! class_exists( 'Predis\Client' ) ) {
 					$predis_pro = sprintf(
+						/* translators: %s: Path to plugin directory page */
 						'%s/wp-hummingbird/vendor/predis/predis/autoload.php',
 						defined( 'WP_PLUGIN_DIR' ) ? WP_PLUGIN_DIR : WP_CONTENT_DIR . '/plugins'
 					);
 
 					$predis_free = sprintf(
+						/* translators: %s: Path to plugin directory page */
 						'%s/hummingbird-performance/vendor/predis/predis/autoload.php',
 						defined( 'WP_PLUGIN_DIR' ) ? WP_PLUGIN_DIR : WP_CONTENT_DIR . '/plugins'
 					);
@@ -463,6 +468,7 @@ class WP_Object_Cache {
 
 				$this->redis->connect();
 
+				/* translators: %s: Predis client version */
 				$this->redis_client .= sprintf( ' (v%s)', Predis\Client::VERSION );
 			}
 
@@ -680,25 +686,33 @@ class WP_Object_Cache {
 	 */
 	protected function lua_flush_closure( $salt ) {
 		return function () use ( $salt ) {
-			$script = <<<LUA
-            local cur = 0
-            local i = 0
-            local tmp
-            repeat
-                tmp = redis.call('SCAN', cur, 'MATCH', '{$salt}*')
-                cur = tonumber(tmp[1])
-                if tmp[2] then
-                    for _, v in pairs(tmp[2]) do
-                        redis.call('del', v)
-                        i = i + 1
-                    end
-                end
-            until 0 == cur
-            return i
-LUA;
-
-			if ( version_compare( $this->redis_version(), '5', '<' ) && version_compare( $this->redis_version(), '3.2', '>=' ) ) {
-				$script = 'redis.replicate_commands()' . "\n" . $script;
+			if ( version_compare( $this->redis_version(), '3.2', '>=' ) ) {
+				$script = <<<LUA
+				redis.replicate_commands()
+				local cur = 0
+				local i = 0
+				local tmp
+				repeat
+					tmp = redis.call('SCAN', cur, 'MATCH', '{$salt}*')
+					cur = tonumber(tmp[1])
+					if tmp[2] then
+						for _, v in pairs(tmp[2]) do
+							redis.call('del', v)
+							i = i + 1
+						end
+					end
+				until 0 == cur
+				return i
+	LUA;
+			} else {
+				$script = <<<LUA2
+				local i = 0
+				for _,k in ipairs(redis.call('keys', '{$salt}*')) do
+					redis.call('del', k)
+					i = i + 1
+				end
+				return i
+	LUA2;
 			}
 
 			$args = ( $this->redis instanceof Predis\Client )
@@ -726,31 +740,48 @@ LUA;
 				$this->unflushable_groups
 			);
 
-			$script = <<<LUA
-            local cur = 0
-            local i = 0
-            local d, tmp
-            repeat
-                tmp = redis.call('SCAN', cur, 'MATCH', '{$salt}*')
-                cur = tonumber(tmp[1])
-                if tmp[2] then
-                    for _, v in pairs(tmp[2]) do
-                        d = true
-                        for _, s in pairs(KEYS) do
-                            d = d and not v:find(s, {$salt_length})
-                            if not d then break end
-                        end
-                        if d then
-                            redis.call('del', v)
-                            i = i + 1
-                        end
-                    end
-                end
-            until 0 == cur
-            return i
+			if ( version_compare( $this->redis_version(), '3.2', '>=' ) ) {
+				$script = <<<LUA
+				redis.replicate_commands()
+				local cur = 0
+				local i = 0
+				local d, tmp
+				repeat
+					tmp = redis.call('SCAN', cur, 'MATCH', '{$salt}*')
+					cur = tonumber(tmp[1])
+					if tmp[2] then
+						for _, v in pairs(tmp[2]) do
+							d = true
+							for _, s in pairs(KEYS) do
+								d = d and not v:find(s, {$salt_length})
+								if not d then break end
+							end
+							if d then
+								redis.call('del', v)
+								i = i + 1
+							end
+						end
+					end
+				until 0 == cur
+				return i
 LUA;
-			if ( version_compare( $this->redis_version(), '5', '<' ) && version_compare( $this->redis_version(), '3.2', '>=' ) ) {
-				$script = 'redis.replicate_commands()' . "\n" . $script;
+			} else {
+				$script = <<<LUA2
+				local i = 0
+				local d
+				for _,k in ipairs(redis.call('keys', '{$salt}*')) do
+					d = true
+					for _, s in pairs(KEYS) do
+						d = d and not k:find(s, {$salt_length})
+						if not d then break end
+					end
+					if d then
+						redis.call('del', k)
+						i = i + 1
+					end
+				end
+				return i
+LUA2;
 			}
 
 			$args = ( $this->redis instanceof Predis\Client )
@@ -1103,8 +1134,9 @@ LUA;
 		<?php foreach ( $this->cache as $group => $cache ) : ?>
 			<li>
 				<?php
-				printf(
-					'%s - %sk', strip_tags( $group ),
+				printf( /* translators: %1$s - Group <a>, %2$s - Cache </a> */
+					'%s - %sk',
+					strip_tags( $group ),
 					number_format( strlen( serialize( $cache ) ) / 1024, 2 )
 				);
 				?>
@@ -1213,7 +1245,7 @@ LUA;
 				} elseif ( false === strpos( $data, '"' ) ) {
 					return false;
 				}
-			// Or else fall through.
+				// Or else fall through.
 			case 'a':
 			case 'O':
 				return (bool) preg_match( "/^{$token}:[0-9]+:/s", $data );

@@ -159,32 +159,7 @@ class Status extends React.Component {
 
 		return (
 			<div className="sui-box-settings-row sui-upsell-row cf-dash-notice sui-no-padding-top">
-				{ ! this.props.data.isWhiteLabeled && (
-					<img
-						className="sui-image sui-upsell-image"
-						alt={ __(
-							'Connect your account to Cloudflare',
-							'wphb'
-						) }
-						src={
-							this.props.link.wphbDirUrl +
-							'admin/assets/image/graphic-hb-cf-sell.png'
-						}
-						srcSet={
-							this.props.link.wphbDirUrl +
-							'admin/assets/image/graphic-hb-cf-sell.png 1x, ' +
-							this.props.link.wphbDirUrl +
-							'admin/assets/image/graphic-hb-cf-sell@2x.png 2x'
-						}
-					/>
-				) }
-				{ this.props.data.isWhiteLabeled ? (
-					<Notice
-						message={ notice }
-						content={ connectButton }
-						classes="sui-notice-grey"
-					/>
-				) : (
+				{ (
 					<div className="sui-upsell-notice">
 						<p>
 							{ notice }
@@ -193,7 +168,7 @@ class Status extends React.Component {
 								<Button
 									text={ __( 'Learn More', 'wphb' ) }
 									url="https://wpmudev.com/docs/wpmu-dev-plugins/hummingbird/#browser-cache"
-									target="_blank"
+									target="blank"
 								/>
 							</span>
 						</p>
@@ -217,7 +192,7 @@ class Status extends React.Component {
 		let text = sprintf(
 			/* translators: %d - number of failed items */
 			__(
-				'%d of your cache types don’t meet the recommended expiry period of 1 year. Configure browser caching below.',
+				'%d of your cache types don’t meet the minimum recommended expiry period of 1 year. Configure browser caching below.',
 				'wphb'
 			),
 			failedItems
@@ -226,14 +201,14 @@ class Status extends React.Component {
 		if ( 0 === failedItems ) {
 			classes = 'sui-notice-success';
 			text = __(
-				'All of your cache types meet the recommended expiry period of 1 year. Great work!',
+				'All of your cache types meet the minimum recommended expiry period of 1 year. Great work!',
 				'wphb'
 			);
 
 			// Browser caching enabled on host site.
 			if ( false === this.props.data.htaccessWritten ) {
 				text = __(
-					'All of your cache types meet the recommended expiry period of 1 year. Your hosting has automatically pre-configured browser caching for you and no further actions are required.',
+					'All of your cache types meet the minimum recommended expiry period of 1 year. Your hosting has automatically pre-configured browser caching for you and no further actions are required.',
 					'wphb'
 				);
 			}
@@ -241,9 +216,15 @@ class Status extends React.Component {
 
 		// Build the items array.
 		const items = Object.entries( this.props.status ).map( ( item ) => {
-			let tag = 'warning';
-			let type = item[ 0 ].toLowerCase();
+			const type = item[ 0 ].toLowerCase();
 			let iconLabel = type;
+			let tag = 'warning';
+
+			if ( 'javascript' === iconLabel ) {
+				iconLabel = 'js';
+			} else if ( 'images' === iconLabel ) {
+				iconLabel = 'img';
+			}
 
 			if ( item[ 1 ] >= this.props.data.recommended[ type ].value ) {
 				tag = 'success';
@@ -257,20 +238,6 @@ class Status extends React.Component {
 				),
 				this.props.data.recommended[ type ].label
 			);
-
-			const recommendedTag = (
-				<Tag
-					value={ this.props.data.recommended[ type ].label }
-					type="disabled"
-				/>
-			);
-
-			if ( 'javascript' === type ) {
-				type = 'js';
-				iconLabel = 'js';
-			} else if ( 'images' === type ) {
-				iconLabel = 'img';
-			}
 
 			const labelData = (
 				<React.Fragment>
@@ -291,11 +258,9 @@ class Status extends React.Component {
 			return {
 				label: labelData,
 				expiry: (
-					<Tooltip
-						text={ recommendedTooltipText }
-						data={ recommendedTag }
-						classes={ [ 'sui-tooltip-constrained' ] }
-					/>
+					<Tooltip text={ recommendedTooltipText } classes="sui-tooltip-constrained">
+						<Tag value={ this.props.data.recommended[ type ].label } type="disabled" />
+					</Tooltip>
 				),
 				details: (
 					<Tag value={ this.props.human[ item[ 0 ] ] } type={ tag } />
@@ -309,13 +274,11 @@ class Status extends React.Component {
 					<React.Fragment>
 						<Tooltip
 							text={ this.props.data.cacheTypes.cloudflare }
-							data="oth"
 							classes={ classNames(
 								'sui-tooltip-constrained',
 								'wphb-filename-extension',
 								'wphb-filename-extension-other'
-							) }
-						/>
+							) }>oth</Tooltip>
 						<span className="wphb-filename-extension-label">
 							Cloudflare
 						</span>

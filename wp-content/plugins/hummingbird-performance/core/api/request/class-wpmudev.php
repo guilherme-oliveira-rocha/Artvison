@@ -8,6 +8,7 @@
 namespace Hummingbird\Core\Api\Request;
 
 use Hummingbird\Core\Api\Exception;
+use Hummingbird\Core\Api\Service\Hosting;
 use Hummingbird\Core\Api\Service\Performance;
 use Hummingbird\Core\Api\Service\Uptime;
 use WPMUDEV_Dashboard;
@@ -56,12 +57,15 @@ class WPMUDEV extends Request {
 		/**
 		 * Service.
 		 *
-		 * @var Performance|Uptime $service
+		 * @var Performance|Uptime|Hosting $service
 		 */
 		$service = $this->get_service();
 
 		if ( defined( 'WPHB_TEST_API_URL' ) && WPHB_TEST_API_URL ) {
 			$url = WPHB_TEST_API_URL . $service->get_name() . '/' . $service->get_version() . '/';
+			// Sync with WPMUDEV_Dashboard.
+		} elseif ( defined( 'WPMUDEV_CUSTOM_API_SERVER' ) && WPMUDEV_CUSTOM_API_SERVER ) {
+			$url = WPMUDEV_CUSTOM_API_SERVER . '/api/' . $service->get_name() . '/' . $service->get_version() . '/';
 		} else {
 			$url = 'https://wpmudev.com/api/' . $service->get_name() . '/' . $service->get_version() . '/';
 		}

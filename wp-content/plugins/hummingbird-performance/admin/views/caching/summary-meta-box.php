@@ -60,7 +60,7 @@ $branded_image = apply_filters( 'wpmudev_branding_hero_image', '' );
 			echo esc_html( $preload_status );
 			?>
 			<span class="sui-tooltip sui-tooltip-constrained" data-tooltip="<?php echo esc_attr( $preload_tooltip ); ?>">
-				<span class="<?php echo esc_attr( $preload_icon ); ?>>" aria-hidden="true" style="<?php echo $preload_running ? 'top:0' : ''; ?>"></span>
+				<span class="<?php echo esc_attr( $preload_icon ); ?>" aria-hidden="true"></span>
 			</span>
 		</span>
 		<span class="sui-summary-sub">
@@ -71,7 +71,7 @@ $branded_image = apply_filters( 'wpmudev_branding_hero_image', '' );
 				echo ' | ';
 
 				printf(
-					/* translators: %1$s - start of the link, %2$s - link end */
+					/* translators: %1$s - opening a tag, %2$s - closing a tag */
 					esc_html__( '%1$sCancel%2$s', 'wphb' ),
 					'<a href="#" id="wphb-cancel-cache-preload">',
 					'</a>'

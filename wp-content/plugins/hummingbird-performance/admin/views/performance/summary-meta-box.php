@@ -94,7 +94,7 @@ $branded_image = apply_filters( 'wpmudev_branding_hero_image', '' );
 		<span class="sui-summary-detail">
 			<?php
 			if ( $last_report && ! is_wp_error( $last_report ) ) {
-				$data_time    = strtotime( get_date_from_gmt( date( 'Y-m-d H:i:s', $last_report->time ) ) );
+				$data_time    = strtotime( get_date_from_gmt( gmdate( 'Y-m-d H:i:s', $last_report->time ) ) );
 				$time_string  = esc_html( date_i18n( get_option( 'date_format' ), $data_time ) );
 				$time_string .= sprintf(
 					/* translators: %s - time in proper format */

@@ -44,7 +44,12 @@ class Browser {
 	public function browser_caching_status() {
 		check_ajax_referer( 'wphb-fetch' );
 
-		$params = filter_input( INPUT_POST, 'data', FILTER_SANITIZE_STRING );
+		// Check permission.
+		if ( ! current_user_can( Utils::get_admin_capability() ) ) {
+			die();
+		}
+
+		$params = filter_input( INPUT_POST, 'data', FILTER_UNSAFE_RAW );
 		$params = json_decode( html_entity_decode( $params ), true );
 
 		$force  = 'refresh' === $params;
@@ -87,7 +92,12 @@ class Browser {
 	public function update_expiry() {
 		check_ajax_referer( 'wphb-fetch' );
 
-		$data = filter_input( INPUT_POST, 'data', FILTER_SANITIZE_STRING );
+		// Check permission.
+		if ( ! current_user_can( Utils::get_admin_capability() ) ) {
+			die();
+		}
+
+		$data = filter_input( INPUT_POST, 'data', FILTER_UNSAFE_RAW );
 		$data = json_decode( html_entity_decode( $data ), true );
 
 		$expiry_times = array(

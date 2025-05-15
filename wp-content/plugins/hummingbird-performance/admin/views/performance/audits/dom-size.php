@@ -57,7 +57,11 @@ if ( ! defined( 'ABSPATH' ) ) {
 			<tr>
 				<td><strong><?php esc_html_e( 'Total DOM Nodes', 'wphb' ); ?></strong></td>
 				<td>&nbsp;</td>
-				<td><?php echo esc_html( $audit->details->items[0]->value ); ?></td>
+				<td>
+					<?php
+					echo ( ! is_scalar( $audit->details->items[0]->value ) && isset( $audit->details->items[0]->value->value ) ) ? esc_html( $audit->details->items[0]->value->value ) : esc_html( $audit->details->items[0]->value );
+					?>
+				</td>
 			</tr>
 			<tr>
 				<td><strong><?php esc_html_e( 'Maximum DOM Depth', 'wphb' ); ?></strong></td>
@@ -68,7 +72,11 @@ if ( ! defined( 'ABSPATH' ) ) {
 					}
 					?>
 				</td>
-				<td><?php echo esc_html( $audit->details->items[1]->value ); ?></td>
+				<td>
+					<?php
+					echo ( ! is_scalar( $audit->details->items[1]->value ) && isset( $audit->details->items[1]->value->value ) ) ? esc_html( $audit->details->items[1]->value->value ) : esc_html( $audit->details->items[1]->value );
+					?>
+				</td>
 			</tr>
 			<tr>
 				<td><strong><?php esc_html_e( 'Maximum Child Elements', 'wphb' ); ?></strong></td>
@@ -79,7 +87,11 @@ if ( ! defined( 'ABSPATH' ) ) {
 					}
 					?>
 				</td>
-				<td><?php echo esc_html( $audit->details->items[2]->value ); ?></td>
+				<td>
+					<?php
+					echo ( ! is_scalar( $audit->details->items[2]->value ) && isset( $audit->details->items[2]->value->value ) ) ? esc_html( $audit->details->items[2]->value->value ) : esc_html( $audit->details->items[2]->value );
+					?>
+				</td>
 			</tr>
 			</tbody>
 		</table>

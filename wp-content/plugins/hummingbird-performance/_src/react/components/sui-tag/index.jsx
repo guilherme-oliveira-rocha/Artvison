@@ -7,9 +7,10 @@ import React from 'react';
  * Build a tag object based on the number of issues.
  * If no issues are present ( 0 === value ), show the success tick icon.
  *
- * @param {number} value  Number of issues.
- * @param {string} type   Class to use when there are issues. Accepts: warning, error, success, info, etc.
- * @return {*} Tag component.
+ * @param {Object} props       Component props.
+ * @param {number} props.value Number of issues.
+ * @param {string} props.type  Class to use when there are issues. Accepts: warning, error, success, info, etc.
+ * @return {JSX.Element} Tag component.
  * @class
  */
 export default function Tag( { value, type } ) {

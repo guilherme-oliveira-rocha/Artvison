@@ -12,9 +12,10 @@ import Icon from '../sui-icon';
 /**
  * Notice functional component.
  *
- * @param {string} message Notice message.
- * @param {Array}  classes Array of extra classes to use.
- * @param {Object} content CTA content.
+ * @param {Object} props         Component props.
+ * @param {string} props.message Notice message.
+ * @param {Array}  props.classes Array of extra classes to use.
+ * @param {Object} props.content CTA content.
  * @return {JSX.Element} Notice component.
  * @class
  */
@@ -26,9 +27,7 @@ export default function Notice( { message, classes, content } ) {
 			<div className="sui-notice-content">
 				<div className="sui-notice-message">
 					<Icon classes="sui-notice-icon sui-icon-info sui-md" />
-					{ message && (
-						<p dangerouslySetInnerHTML={ { __html: message } } />
-					) }
+					{ message && <p>{ message }</p> }
 					{ content && <p>{ content }</p> }
 				</div>
 			</div>

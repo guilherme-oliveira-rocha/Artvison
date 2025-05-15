@@ -16,8 +16,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 <?php if ( ! apply_filters( 'wpmudev_branding_hide_branding', false ) ) : ?>
 	<img class="sui-image" aria-hidden="true" alt=""
-		src="<?php echo esc_url( WPHB_DIR_URL . 'admin/assets/image/hb-graphic-uptime-disabled@1x.png' ); ?>"
-		srcset="<?php echo esc_url( WPHB_DIR_URL . 'admin/assets/image/hb-graphic-uptime-disabled@1x.png' ); ?> 1x, <?php echo esc_url( WPHB_DIR_URL . 'admin/assets/image/hb-graphic-uptime-disabled@2x.png' ); ?> 2x" />
+		src="<?php echo esc_url( WPHB_DIR_URL . 'admin/assets/image/hb-graphic-uptime-available@1x.png' ); ?>"
+		srcset="<?php echo esc_url( WPHB_DIR_URL . 'admin/assets/image/hb-graphic-uptime-available@1x.png' ); ?> 1x, <?php echo esc_url( WPHB_DIR_URL . 'admin/assets/image/hb-graphic-uptime-available@2x.png' ); ?> 2x" />
 <?php endif; ?>
 
 <div class="sui-message-content">
@@ -27,7 +27,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 		?>
 	</p>
 
-	<a href="<?php echo esc_url( $activate_url ); ?>" class="sui-button sui-button-blue" type="button" onclick="WPHB_Admin.Tracking.enableFeature( 'Uptime' )">
+	<a href="<?php echo esc_url( $activate_url ); ?>" class="sui-button sui-button-blue" type="button" onclick="wphbMixPanel.enableFeature( 'Uptime' )">
 		<?php esc_html_e( 'Activate', 'wphb' ); ?>
 	</a>
 </div>

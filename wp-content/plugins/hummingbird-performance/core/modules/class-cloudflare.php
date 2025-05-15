@@ -479,7 +479,11 @@ class Cloudflare extends Module {
 				);
 				break;
 			default:
-				$message = sprintf( '<strong>%s</strong> [%s]', $zones->get_error_message(), $zones->get_error_code() );
+				$message = sprintf( /* translators: %s - Zone Error message, %s - Zone Error code */
+					'<strong>%s</strong> [%s]',
+					$zones->get_error_message(),
+					$zones->get_error_code()
+				);
 				wp_send_json_error( array( 'message' => $message ) );
 				break;
 		}
@@ -529,8 +533,8 @@ class Cloudflare extends Module {
 	 * @return bool|array
 	 */
 	public function find_matching_zone( $zones, $domain = '' ) {
-		$site_url      = empty( $domain ) ? get_site_url() : $domain;
-		$site_url      = rtrim( preg_replace( '/^https?:\/\//', '', $site_url ), '/' );
+		$site_url      = empty( $domain ) ? get_site_url() : '//' . $domain;
+		$site_url      = wp_parse_url( $site_url, PHP_URL_HOST );
 		$plucked_zones = wp_list_pluck( $zones, 'label' );
 		$found         = preg_grep( '/.*' . $site_url . '.*/', $plucked_zones );
 
@@ -716,6 +720,16 @@ class Cloudflare extends Module {
 
 		$features  = wp_list_pluck( $entitlements->result, 'id' );
 		$purchased = in_array( 'zone.automatic_platform_optimization', $features, true );
+
+		/**
+		 * If APO addon has been purchased before, it might not be active now - check.
+		 */
+		if ( $purchased ) {
+			$key = array_search( 'zone.automatic_platform_optimization', $features, true );
+			$val = $entitlements->result[ $key ];
+
+			$purchased = isset( $val->allocation ) && isset( $val->allocation->value ) && $val->allocation->value;
+		}
 
 		if ( isset( $options['apo_paid'] ) && $purchased !== $options['apo_paid'] ) {
 			$options['apo_paid'] = $purchased;
@@ -996,6 +1010,7 @@ class Cloudflare extends Module {
 		$page_number_max = min( 3, ceil( $total_posts_count / $posts_per_page ) );
 
 		foreach ( range( 1, $page_number_max ) as $page_number ) {
+			/* translators: %s: Page number */
 			array_push( $urls, home_url( sprintf( '/page/%s/', $page_number ) ) );
 		}
 

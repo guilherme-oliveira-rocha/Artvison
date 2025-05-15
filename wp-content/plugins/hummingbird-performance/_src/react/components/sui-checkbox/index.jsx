@@ -9,19 +9,21 @@ import classNames from 'classnames';
  */
 export default class Checkbox extends React.Component {
 	/**
-	 * Render component.
+	 * Get element content.
 	 *
-	 * @return {JSX.Element}  Select component.
+	 * @return {JSX.Element} Checkbox element.
 	 */
-	render() {
+	getElement() {
 		return (
-			<div className="sui-form-field">
+			<React.Fragment>
 				<label
 					htmlFor={ 'wphb-' + this.props.id }
 					className={ classNames( 'sui-checkbox', {
 						'sui-checkbox-sm':
 							'undefined' !== typeof this.props.size &&
 							'sm' === this.props.size,
+					}, {
+						'sui-checkbox-stacked': this.props.stacked
 					} ) }
 				>
 					<input
@@ -31,6 +33,7 @@ export default class Checkbox extends React.Component {
 						checked={ this.props.checked }
 						disabled={ this.props.disabled }
 						onChange={ this.props.onChange }
+						{ ...this.props.data }
 					/>
 					<span aria-hidden="true"></span>
 					{ this.props.label && (
@@ -44,6 +47,23 @@ export default class Checkbox extends React.Component {
 						{ this.props.description }
 					</span>
 				) }
+			</React.Fragment>
+		);
+	}
+
+	/**
+	 * Render component.
+	 *
+	 * @return {JSX.Element}  Select component.
+	 */
+	render() {
+		if ( this.props.stacked ) {
+			return this.getElement();
+		}
+
+		return (
+			<div className="sui-form-field">
+				{ this.getElement() }
 			</div>
 		);
 	}
@@ -55,4 +75,5 @@ Checkbox.defaultProps = {
 	label: '',
 	checked: false,
 	disabled: false,
+	stacked: false,
 };
